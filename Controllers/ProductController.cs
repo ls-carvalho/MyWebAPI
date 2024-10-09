@@ -33,8 +33,8 @@ public class ProductController : ControllerBase
     [Route("{id}")]
     public async Task<ActionResult<Product>> GetProductById(int id)
     {
-        var result = await _context.Products.FindAsync(id);
-        if (result == null)
+        var result = await _productService.GetProductById(id);
+        if (result is null)
         {
             return NotFound();
         }
@@ -46,58 +46,55 @@ public class ProductController : ControllerBase
     [Route("create")]
     public async Task<ActionResult<Product>> CreateProduct(CreateProductDto product)
     {
-        var entity = new Product()
+        try
         {
-            Name = product.Name,
-            Description = product.Description,
-            Value = product.Value,
-        };
-        _context.Products.Add(entity);
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Created a product with Id: {Id}", entity.Id);
-        return Ok(entity);
+            var result = await _productService.CreateProduct(product);
+            _logger.LogInformation("Created a product with Id: {Id}", result.Id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, ex.Message);
+            return NotFound();
+        }
     }
 
     [HttpPost]
     [Route("update")]
     public async Task<ActionResult<Product>> UpdateProduct(UpdateProductDto product)
     {
-        if(product is null)
+        try
         {
+            var entity = await _productService.UpdateProduct(product);
+            _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
+            return Ok(product);
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, ex.Message);
             return BadRequest();
         }
-
-        var entity = await _context.Products.FindAsync(product.Id);
-
-        if (entity == null) 
+        catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex, ex.Message);
             return NotFound();
         }
-
-        entity.Name = product.Name;
-        entity.Description = product.Description;
-        entity.Value = product.Value;
-
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated a product with Id: {Id}", entity.Id);
-
-        return Ok(entity);
     }
 
     [HttpDelete]
     [Route("{id}")]
     public async Task<ActionResult<Product>> DeleteProduct(int id)
     {
-        var entity = await _context.Products.FindAsync(id);
-        if(entity == null)
+        try
         {
+            var entity = await _productService.DeleteProduct(id);
+            _logger.LogInformation("Deleted a product with Id: {Id}", entity!.Id);
+            return Ok(entity);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, ex.Message);
             return NotFound();
         }
-
-        _context.Products.Remove(entity);
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Deleted a product with Id: {Id}", entity.Id);
-
-        return Ok(entity);
     }
 }
