@@ -1,4 +1,4 @@
-﻿namespace MyWebAPI.Models;
+﻿namespace MyWebAPI.DataTransferObject;
 
 public class CreateProductDto
 {
