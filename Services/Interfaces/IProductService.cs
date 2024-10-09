@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 
 namespace MyWebAPI.Services.Interfaces;
@@ -10,6 +10,4 @@ public interface IProductService
     Task<Product> CreateProduct(CreateProductDto product);
     Task<Product> UpdateProduct(UpdateProductDto product);
     Task<Product> DeleteProduct(int id);
-
-
 }

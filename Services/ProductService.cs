@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
+using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 using System.Reflection.Metadata.Ecma335;
@@ -47,7 +48,7 @@ public class ProductService : IProductService
         return entity;
     }
 
-    public async Task<Product?> UpdateProduct(UpdateProductDto product)
+    public async Task<Product> UpdateProduct(UpdateProductDto product)
     {
         // Não tem efeito prático, precisa mudar
         if (product is null)
