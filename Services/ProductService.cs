@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
+using MyWebAPI.Controllers;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -10,11 +11,13 @@ namespace MyWebAPI.Services;
 
 public class ProductService : IProductService
 {
+    private readonly ILogger<ProductController> _logger;
     public readonly AppDbContext _context;
 
-    public ProductService(AppDbContext context)
+    public ProductService(ILogger<ProductController> logger, AppDbContext context)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<Product>> GetAllProductsAsync()
@@ -22,16 +25,17 @@ public class ProductService : IProductService
         return await _context.Products.OrderBy(product => product.Id).ToListAsync();
     }
 
-    public async Task<Product?> GetProductById(int id)
+    public async Task<Product?> GetProductByIdAsync(int id)
     {
         return await _context.Products.FindAsync(id);
     }
 
-    public async Task<Product> CreateProduct(CreateProductDto product)
+    public async Task<Product> CreateProductAsync(CreateProductDto product)
     {
         // Não tem efeito prático, precisa mudar
         if (product is null)
         {
+            _logger.LogWarning("Request body invalid");
             throw new ArgumentNullException(nameof(product));
         }
 
@@ -44,15 +48,17 @@ public class ProductService : IProductService
 
         _context.Products.Add(entity);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Created a product with Id: {Id}", entity.Id);
 
         return entity;
     }
 
-    public async Task<Product> UpdateProduct(UpdateProductDto product)
+    public async Task<Product> UpdateProductAsync(UpdateProductDto product)
     {
         // Não tem efeito prático, precisa mudar
         if (product is null)
         {
+            _logger.LogWarning("Request body invalid");
             throw new ArgumentNullException(nameof(product));
         }
 
@@ -60,6 +66,7 @@ public class ProductService : IProductService
 
         if (entity is null)
         {
+            _logger.LogWarning("Product not found");
             throw new KeyNotFoundException(nameof(product));
         }
 
@@ -68,22 +75,23 @@ public class ProductService : IProductService
         entity.Value = product.Value;
 
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
         return entity;
     }
 
-    public async Task<Product> DeleteProduct(int id)
+    public async Task<Product> DeleteProductAsync(int id)
     {
         var entity = await _context.Products.FindAsync(id);
         if (entity is null)
         {
+            _logger.LogWarning("Product not found");
             throw new KeyNotFoundException("{id}");
         }
 
         _context.Products.Remove(entity);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted a product with Id: {Id}", id);
+
         return entity;
     }
-
-
-
 }

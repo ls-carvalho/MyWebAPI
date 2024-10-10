@@ -6,8 +6,8 @@ namespace MyWebAPI.Services.Interfaces;
 public interface IProductService
 {
     Task<IEnumerable<Product>> GetAllProductsAsync();
-    Task<Product?> GetProductById(int id);
-    Task<Product> CreateProduct(CreateProductDto product);
-    Task<Product> UpdateProduct(UpdateProductDto product);
-    Task<Product> DeleteProduct(int id);
+    Task<Product?> GetProductByIdAsync(int id);
+    Task<Product> CreateProductAsync(CreateProductDto product);
+    Task<Product> UpdateProductAsync(UpdateProductDto product);
+    Task<Product> DeleteProductAsync(int id);
 }
