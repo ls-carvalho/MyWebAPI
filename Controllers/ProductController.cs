@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MyWebAPI.Context;
-using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.Product;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 

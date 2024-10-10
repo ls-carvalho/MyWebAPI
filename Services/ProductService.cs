@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.Controllers;
-using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.Product;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 using System.Reflection.Metadata.Ecma335;
