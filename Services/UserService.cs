@@ -68,9 +68,9 @@ public class UserService : IUserService
             throw new KeyNotFoundException(nameof(user));
         }
 
-        entity.Name = user.Name;
-        entity.Description = user.Description;
-        entity.Value = user.Value;
+        entity.Username = user.Username;
+        entity.Password = user.Password;
+        entity.Account = user.Account;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
