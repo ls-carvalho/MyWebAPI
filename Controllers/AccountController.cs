@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyWebAPI.Context;
-using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.Account;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 
@@ -53,7 +53,7 @@ public class AccountController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound("Request body invalid");
+            return NotFound("Request body invalid: " + ex.Message);
         }
     }
 

@@ -10,7 +10,7 @@ namespace MyWebAPI.Services;
 public class UserService : IUserService
 {
     private readonly ILogger<UserController> _logger;
-    public readonly AppDbContext _context;
+    private readonly AppDbContext _context;
 
     public UserService(ILogger<UserController> logger, AppDbContext context)
     {
@@ -25,7 +25,7 @@ public class UserService : IUserService
 
     public async Task<User?> GetUserByIdAsync(int id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<User> CreateUserAsync(CreateUserDto user)
@@ -37,11 +37,16 @@ public class UserService : IUserService
             throw new ArgumentNullException(nameof(user));
         }
 
+        // Validações pertinentes seriam realizadas nesse momento
+
         var entity = new User()
         {
             Username = user.Username,
             Password = user.Password,
-            Account = user.Account,
+            Account = new Account()
+            {
+                DisplayName = user.Account.DisplayName,
+            },
         };
 
         _context.Users.Add(entity);
@@ -70,7 +75,6 @@ public class UserService : IUserService
 
         entity.Username = user.Username;
         entity.Password = user.Password;
-        entity.Account = user.Account;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
@@ -79,11 +83,18 @@ public class UserService : IUserService
 
     public async Task<User> DeleteUserAsync(int id)
     {
-        var entity = await _context.Users.FindAsync(id);
+        var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
         if (entity is null)
         {
             _logger.LogWarning("User not found");
             throw new KeyNotFoundException("{id}");
+        }
+
+        if(entity.Account is not null)
+        {
+            var account = entity.Account;
+            _context.Accounts.Remove(account);
+            _logger.LogInformation("Deleted a account with Id: {Id}", account.Id);
         }
 
         _context.Users.Remove(entity);
