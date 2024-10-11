@@ -30,7 +30,7 @@ public class AddonService : IAddonService
 
     public async Task<Addon> CreateAddonAsync(CreateAddonDto addon)
     {
-        ValidateCreate(addon);
+        ValidateDto(addon);
 
         var entity = new Addon()
         {
@@ -47,8 +47,10 @@ public class AddonService : IAddonService
 
     public async Task<Addon> UpdateAddonAsync(UpdateAddonDto addon)
     {
+        ValidateDto(addon);
+
         var entity = await _context.Addons.FindAsync(addon.Id);
-        ValidateUpdate(addon, entity);
+        ValidateExists(entity, addon.Id);
 
         entity.Name = addon.Name;
         entity.ProductId = addon.ProductId;
@@ -64,7 +66,7 @@ public class AddonService : IAddonService
         if (entity is null)
         {
             _logger.LogWarning("Addon not found with Id: {Id}", id);
-            throw new KeyNotFoundException($"Addon not found with Id: {id}");
+            throw new InvalidOperationException($"Addon not found with Id: {id}");
         }
 
         _context.Addons.Remove(entity);
@@ -74,7 +76,7 @@ public class AddonService : IAddonService
         return entity;
     }
 
-    private async void ValidateCreate(CreateAddonDto addon)
+    private async void ValidateDto(CreateAddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)
@@ -97,7 +99,7 @@ public class AddonService : IAddonService
         }
     }
 
-    private async void ValidateUpdate(UpdateAddonDto addon, Addon? entity)
+    private async void ValidateDto(UpdateAddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)
@@ -118,11 +120,13 @@ public class AddonService : IAddonService
             _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
             throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
         }
+    }
 
+    private void ValidateExists(Addon? entity, int id)
+    {
         if (entity is null)
         {
-            _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
-            throw new InvalidOperationException($"Addon not found with Id: {addon.Id}");
+            throw new InvalidOperationException($"Addon not found with Id: {id}");
         }
     }
 }

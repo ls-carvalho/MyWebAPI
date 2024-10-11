@@ -148,8 +148,4 @@ public class ProductService : IProductService
             throw new InvalidOperationException($"Product not found with Id: {id}");
         }
     }
-
-
-
-
 }

@@ -66,9 +66,9 @@ public class ProductController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (KeyNotFoundException ex)
+        catch (InvalidOperationException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -85,9 +85,9 @@ public class ProductController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (KeyNotFoundException ex)
+        catch (InvalidOperationException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -100,10 +100,9 @@ public class ProductController : ControllerBase
             var entity = await _productService.DeleteProductAsync(id);
             return Ok(entity);
         }
-        catch (KeyNotFoundException ex)
+        catch (InvalidOperationException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
-
     }
 }

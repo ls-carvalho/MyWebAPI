@@ -49,7 +49,11 @@ public class AddonController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
@@ -66,9 +70,9 @@ public class AddonController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (KeyNotFoundException ex)
+        catch (InvalidOperationException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -81,10 +85,9 @@ public class AddonController : ControllerBase
             var entity = await _addonService.DeleteAddonAsync(id);
             return Ok(entity);
         }
-        catch (KeyNotFoundException ex)
+        catch (InvalidOperationException ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
-
     }
 }
