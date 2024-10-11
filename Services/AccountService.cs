@@ -36,7 +36,7 @@ public class AccountService : IAccountService
         if (account is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(account));
+            throw new ArgumentNullException(nameof(account), "Request body invalid");
         }
 
         var entity = new Account()
@@ -47,7 +47,7 @@ public class AccountService : IAccountService
 
         _context.Accounts.Add(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Created a account with Id: {Id}", entity.Id);
+        _logger.LogInformation("Created an account with Id: {Id}", entity.Id);
 
         return entity;
     }
@@ -58,22 +58,22 @@ public class AccountService : IAccountService
         if (account is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(account));
+            throw new ArgumentNullException(nameof(account), "Request body invalid");
         }
 
         var entity = await _context.Accounts.FindAsync(account.Id);
 
         if (entity is null)
         {
-            _logger.LogWarning("Account not found");
-            throw new KeyNotFoundException(nameof(account));
+            _logger.LogWarning("Account not found with Id: {Id}", account.Id);
+            throw new KeyNotFoundException($"Account not found with Id: {account.Id}");
         }
 
         entity.DisplayName = account.DisplayName;
         entity.User = account.User;
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated a account with Id: {Id}", account.Id);
+        _logger.LogInformation("Updated an account with Id: {Id}", account.Id);
         return entity;
     }
 
@@ -82,13 +82,13 @@ public class AccountService : IAccountService
         var entity = await _context.Accounts.FindAsync(id);
         if (entity is null)
         {
-            _logger.LogWarning("Account not found");
-            throw new KeyNotFoundException("{id}");
+            _logger.LogWarning("Account not found with Id: {Id}", id);
+            throw new KeyNotFoundException($"Account not found with Id: {id}");
         }
 
         _context.Accounts.Remove(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Deleted a account with Id: {Id}", id);
+        _logger.LogInformation("Deleted an account with Id: {Id}", id);
 
         return entity;
     }

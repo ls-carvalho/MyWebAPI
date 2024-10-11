@@ -34,7 +34,7 @@ public class UserService : IUserService
         if (user is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(user));
+            throw new ArgumentNullException(nameof(user), "Request body invalid");
         }
 
         // Validações pertinentes seriam realizadas nesse momento
@@ -62,15 +62,15 @@ public class UserService : IUserService
         if (user is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(user));
+            throw new ArgumentNullException(nameof(user), "Request body invalid");
         }
 
         var entity = await _context.Users.FindAsync(user.Id);
 
         if (entity is null)
         {
-            _logger.LogWarning("User not found");
-            throw new KeyNotFoundException(nameof(user));
+            _logger.LogWarning("User not found with Id: {Id}", user.Id);
+            throw new KeyNotFoundException($"User not found with Id: {user.Id}");
         }
 
         entity.Username = user.Username;
@@ -86,15 +86,15 @@ public class UserService : IUserService
         var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
         if (entity is null)
         {
-            _logger.LogWarning("User not found");
-            throw new KeyNotFoundException("{id}");
+            _logger.LogWarning("User not found with Id: {Id}", id);
+            throw new KeyNotFoundException($"User not found with Id: {id}");
         }
 
-        if(entity.Account is not null)
+        if (entity.Account is not null)
         {
             var account = entity.Account;
             _context.Accounts.Remove(account);
-            _logger.LogInformation("Deleted a account with Id: {Id}", account.Id);
+            _logger.LogInformation("Deleted an account with Id: {Id}", account.Id);
         }
 
         _context.Users.Remove(entity);

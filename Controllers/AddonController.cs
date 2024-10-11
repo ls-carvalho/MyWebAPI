@@ -12,10 +12,8 @@ public class AddonController : ControllerBase
 {
     private readonly IAddonService _addonService;
 
-    public AddonController(ILogger<AddonController> logger, AppDbContext context, IAddonService addonService)
+    public AddonController(IAddonService addonService)
     {
-        _logger = logger;
-        _context = context;
         _addonService = addonService;
     }
 
@@ -34,7 +32,7 @@ public class AddonController : ControllerBase
         var result = await _addonService.GetAddonByIdAsync(id);
         if (result is null)
         {
-            return NotFound("Addon not found");
+            return NotFound($"Addon not found with Id: {id}");
         }
 
         return Ok(result);
@@ -51,7 +49,7 @@ public class AddonController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound("Request body invalid");
+            return NotFound(ex.Message);
         }
     }
 
@@ -66,11 +64,11 @@ public class AddonController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return BadRequest("Request body invalid");
+            return BadRequest(ex.Message);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Addon not found for update");
+            return NotFound(ex.Message);
         }
     }
 
@@ -85,7 +83,7 @@ public class AddonController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Addon not found for deletion");
+            return NotFound(ex.Message);
         }
 
     }

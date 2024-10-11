@@ -12,10 +12,8 @@ public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
 
-    public AccountController(ILogger<AccountController> logger, AppDbContext context, IAccountService accountService)
+    public AccountController(IAccountService accountService)
     {
-        _logger = logger;
-        _context = context;
         _accountService = accountService;
     }
 
@@ -34,7 +32,7 @@ public class AccountController : ControllerBase
         var result = await _accountService.GetAccountByIdAsync(id);
         if (result is null)
         {
-            return NotFound("Account not found");
+            return NotFound($"Account not found with Id: {id}");
         }
 
         return Ok(result);
@@ -51,7 +49,7 @@ public class AccountController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound("Request body invalid: " + ex.Message);
+            return NotFound(ex.Message);
         }
     }
 
@@ -66,11 +64,11 @@ public class AccountController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return BadRequest("Request body invalid");
+            return BadRequest(ex.Message);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Account not found for update");
+            return NotFound(ex.Message);
         }
     }
 
@@ -85,7 +83,7 @@ public class AccountController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Account not found for deletion");
+            return NotFound(ex.Message);
         }
 
     }

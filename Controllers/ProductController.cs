@@ -12,10 +12,8 @@ public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
 
-    public ProductController(ILogger<ProductController> logger, AppDbContext context, IProductService productService)
+    public ProductController(IProductService productService)
     {
-        _logger = logger;
-        _context = context;
         _productService = productService;
     }
 
@@ -34,7 +32,7 @@ public class ProductController : ControllerBase
         var result = await _productService.GetProductByIdAsync(id);
         if (result is null)
         {
-            return NotFound("Product not found");
+            return NotFound($"Product not found with Id: {id}");
         }
 
         return Ok(result);
@@ -51,7 +49,7 @@ public class ProductController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound("Request body invalid");
+            return NotFound(ex.Message);
         }
     }
 
@@ -66,11 +64,11 @@ public class ProductController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return BadRequest("Request body invalid");
+            return BadRequest(ex.Message);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Product not found for update");
+            return NotFound(ex.Message);
         }
     }
 
@@ -85,7 +83,7 @@ public class ProductController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("Product not found for deletion");
+            return NotFound(ex.Message);
         }
 
     }

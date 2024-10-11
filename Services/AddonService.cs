@@ -34,7 +34,7 @@ public class AddonService : IAddonService
         if (addon is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon));
+            throw new ArgumentNullException(nameof(addon), "Request body invalid");
         }
 
         var entity = new Addon()
@@ -45,7 +45,7 @@ public class AddonService : IAddonService
 
         _context.Addons.Add(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Created a addon with Id: {Id}", entity.Id);
+        _logger.LogInformation("Created an addon with Id: {Id}", entity.Id);
 
         return entity;
     }
@@ -56,22 +56,22 @@ public class AddonService : IAddonService
         if (addon is null)
         {
             _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon));
+            throw new ArgumentNullException(nameof(addon), "Request body invalid");
         }
 
         var entity = await _context.Addons.FindAsync(addon.Id);
 
         if (entity is null)
         {
-            _logger.LogWarning("Addon not found");
-            throw new KeyNotFoundException(nameof(addon));
+            _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
+            throw new KeyNotFoundException($"Addon not found with Id: {addon.Id}");
         }
 
         entity.Name = addon.Name;
         entity.Product = addon.Product;
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated a addon with Id: {Id}", addon.Id);
+        _logger.LogInformation("Updated an addon with Id: {Id}", addon.Id);
         return entity;
     }
 
@@ -80,13 +80,13 @@ public class AddonService : IAddonService
         var entity = await _context.Addons.FindAsync(id);
         if (entity is null)
         {
-            _logger.LogWarning("Addon not found");
-            throw new KeyNotFoundException("{id}");
+            _logger.LogWarning("Addon not found with Id: {Id}", id);
+            throw new KeyNotFoundException($"Addon not found with Id: {id}");
         }
 
         _context.Addons.Remove(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Deleted a addon with Id: {Id}", id);
+        _logger.LogInformation("Deleted an addon with Id: {Id}", id);
 
         return entity;
     }

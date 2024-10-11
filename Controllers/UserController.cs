@@ -12,10 +12,8 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
 
-    public UserController(ILogger<UserController> logger, AppDbContext context, IUserService userService)
+    public UserController(IUserService userService)
     {
-        _logger = logger;
-        _context = context;
         _userService = userService;
     }
 
@@ -34,7 +32,7 @@ public class UserController : ControllerBase
         var result = await _userService.GetUserByIdAsync(id);
         if (result is null)
         {
-            return NotFound("User not found");
+            return NotFound($"User not found with Id: {id}");
         }
 
         return Ok(result);
@@ -51,7 +49,7 @@ public class UserController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return NotFound("Request body invalid");
+            return NotFound(ex.Message);
         }
     }
 
@@ -66,11 +64,11 @@ public class UserController : ControllerBase
         }
         catch (ArgumentNullException ex)
         {
-            return BadRequest("Request body invalid");
+            return BadRequest(ex.Message);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("User not found for update");
+            return NotFound(ex.Message);
         }
     }
 
@@ -85,7 +83,7 @@ public class UserController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound("User not found for deletion");
+            return NotFound(ex.Message);
         }
 
     }
