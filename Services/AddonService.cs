@@ -30,17 +30,12 @@ public class AddonService : IAddonService
 
     public async Task<Addon> CreateAddonAsync(CreateAddonDto addon)
     {
-        // Não tem efeito prático, precisa mudar
-        if (addon is null)
-        {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon), "Request body invalid");
-        }
+        ValidateCreate(addon);
 
         var entity = new Addon()
         {
             Name = addon.Name,
-            Product = addon.Product,
+            ProductId = addon.ProductId,
         };
 
         _context.Addons.Add(entity);
@@ -52,23 +47,11 @@ public class AddonService : IAddonService
 
     public async Task<Addon> UpdateAddonAsync(UpdateAddonDto addon)
     {
-        // Não tem efeito prático, precisa mudar
-        if (addon is null)
-        {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon), "Request body invalid");
-        }
-
         var entity = await _context.Addons.FindAsync(addon.Id);
-
-        if (entity is null)
-        {
-            _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
-            throw new KeyNotFoundException($"Addon not found with Id: {addon.Id}");
-        }
+        ValidateUpdate(addon, entity);
 
         entity.Name = addon.Name;
-        entity.Product = addon.Product;
+        entity.ProductId = addon.ProductId;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an addon with Id: {Id}", addon.Id);
@@ -89,5 +72,57 @@ public class AddonService : IAddonService
         _logger.LogInformation("Deleted an addon with Id: {Id}", id);
 
         return entity;
+    }
+
+    private async void ValidateCreate(CreateAddonDto addon)
+    {
+        // Não tem efeito prático, precisa mudar
+        if (addon is null)
+        {
+            _logger.LogWarning("Request body invalid");
+            throw new ArgumentNullException(nameof(addon), "Request body invalid");
+        }
+
+        if (string.IsNullOrWhiteSpace(addon.Name))
+        {
+            _logger.LogWarning("Addon name is empty or null");
+            throw new InvalidOperationException("Addon name cannot be empty");
+        }
+
+        var product = await _context.Products.FindAsync(addon.ProductId);
+        if (product is null)
+        {
+            _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
+            throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
+        }
+    }
+
+    private async void ValidateUpdate(UpdateAddonDto addon, Addon? entity)
+    {
+        // Não tem efeito prático, precisa mudar
+        if (addon is null)
+        {
+            _logger.LogWarning("Request body invalid");
+            throw new ArgumentNullException(nameof(addon), "Request body invalid");
+        }
+
+        if (string.IsNullOrWhiteSpace(addon.Name))
+        {
+            _logger.LogWarning("Addon name is empty or null");
+            throw new InvalidOperationException("Addon name cannot be empty");
+        }
+
+        var product = await _context.Products.FindAsync(addon.ProductId);
+        if (product is null)
+        {
+            _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
+            throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
+        }
+
+        if (entity is null)
+        {
+            _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
+            throw new InvalidOperationException($"Addon not found with Id: {addon.Id}");
+        }
     }
 }

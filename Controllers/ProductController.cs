@@ -72,6 +72,25 @@ public class ProductController : ControllerBase
         }
     }
 
+    [HttpPost]
+    [Route("add-addons")]
+    public async Task<ActionResult<Product>> AddProductAddonsAsync(AddProductAddonsDto product)
+    {
+        try
+        {
+            var entity = await _productService.AddProductAddonsAsync(product);
+            return Ok(entity);
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
     [HttpDelete]
     [Route("{id}")]
     public async Task<ActionResult<Product>> DeleteProductAsync(int id)
