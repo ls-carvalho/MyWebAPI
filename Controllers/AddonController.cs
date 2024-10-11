@@ -10,8 +10,6 @@ namespace MyWebAPI.Controllers;
 [Route("[controller]")]
 public class AddonController : ControllerBase
 {
-    private readonly ILogger<AddonController> _logger;
-    private readonly AppDbContext _context;
     private readonly IAddonService _addonService;
 
     public AddonController(ILogger<AddonController> logger, AppDbContext context, IAddonService addonService)

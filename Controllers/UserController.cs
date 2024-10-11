@@ -10,8 +10,6 @@ namespace MyWebAPI.Controllers;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly ILogger<UserController> _logger;
-    private readonly AppDbContext _context;
     private readonly IUserService _userService;
 
     public UserController(ILogger<UserController> logger, AppDbContext context, IUserService userService)

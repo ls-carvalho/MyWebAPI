@@ -10,8 +10,6 @@ namespace MyWebAPI.Controllers;
 [Route("[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly ILogger<ProductController> _logger;
-    private readonly AppDbContext _context;
     private readonly IProductService _productService;
 
     public ProductController(ILogger<ProductController> logger, AppDbContext context, IProductService productService)

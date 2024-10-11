@@ -85,7 +85,7 @@ public class ProductService : IProductService
         if (entity is null)
         {
             _logger.LogWarning("Product not found");
-            throw new KeyNotFoundException("{id}");
+            throw new KeyNotFoundException($"Product not found with Id {id}");
         }
 
         _context.Products.Remove(entity);
