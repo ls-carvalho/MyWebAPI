@@ -1,4 +1,4 @@
-﻿using MyWebAPI.DataTransferObject.Addon;
+﻿using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 
 namespace MyWebAPI.Services.Interfaces;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.Controllers;
-using MyWebAPI.DataTransferObject.Account;
+using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 
