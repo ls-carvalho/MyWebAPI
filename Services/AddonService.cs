@@ -28,24 +28,28 @@ public class AddonService : IAddonService
         return await _context.Addons.FindAsync(id);
     }
 
-    public async Task<Addon> CreateAddonAsync(CreateAddonDto addon)
+    public async Task<CreateAddonDto> CreateAddonAsync(CreateAddonDto addon)
     {
         ValidateDto(addon);
 
+        // TO-DO: 2ª chamada ao banco para a mesma coisa. Não sei a melhor
+        // forma de tirar isso ainda
+        var product = _context.Products.Find(addon.ProductId);
         var entity = new Addon()
         {
             Name = addon.Name,
             ProductId = addon.ProductId,
+            Product = product
         };
 
         _context.Addons.Add(entity);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created an addon with Id: {Id}", entity.Id);
 
-        return entity;
+        return addon;
     }
 
-    public async Task<Addon> UpdateAddonAsync(UpdateAddonDto addon)
+    public async Task<UpdateAddonDto> UpdateAddonAsync(UpdateAddonDto addon)
     {
         ValidateDto(addon);
 
@@ -57,7 +61,7 @@ public class AddonService : IAddonService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an addon with Id: {Id}", addon.Id);
-        return entity;
+        return addon;
     }
 
     public async Task<Addon> DeleteAddonAsync(int id)

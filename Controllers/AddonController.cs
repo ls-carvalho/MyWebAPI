@@ -40,7 +40,7 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<Addon>> CreateAddonAsync(CreateAddonDto addon)
+    public async Task<ActionResult<CreateAddonDto>> CreateAddonAsync(CreateAddonDto addon)
     {
         try
         {
@@ -59,7 +59,7 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<Addon>> UpdateAddonAsync(UpdateAddonDto addon)
+    public async Task<ActionResult<UpdateAddonDto>> UpdateAddonAsync(UpdateAddonDto addon)
     {
         try
         {
