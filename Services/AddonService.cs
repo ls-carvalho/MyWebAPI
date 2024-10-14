@@ -76,7 +76,7 @@ public class AddonService : IAddonService
         return entity;
     }
 
-    private async void ValidateDto(CreateAddonDto addon)
+    private void ValidateDto(CreateAddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)
@@ -91,7 +91,7 @@ public class AddonService : IAddonService
             throw new InvalidOperationException("Addon name cannot be empty");
         }
 
-        var product = await _context.Products.FindAsync(addon.ProductId);
+        var product = _context.Products.Find(addon.ProductId);
         if (product is null)
         {
             _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
@@ -99,7 +99,7 @@ public class AddonService : IAddonService
         }
     }
 
-    private async void ValidateDto(UpdateAddonDto addon)
+    private void ValidateDto(UpdateAddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)
@@ -114,7 +114,7 @@ public class AddonService : IAddonService
             throw new InvalidOperationException("Addon name cannot be empty");
         }
 
-        var product = await _context.Products.FindAsync(addon.ProductId);
+        var product = _context.Products.Find(addon.ProductId);
         if (product is null)
         {
             _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
