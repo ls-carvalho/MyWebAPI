@@ -22,7 +22,7 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<Product>> GetAllProductsAsync()
     {
-        return await _context.Products.OrderBy(product => product.Id).ToListAsync();
+        return await _context.Products.Include(p => p.Addons).Include(p => p.Accounts).OrderBy(product => product.Id).ToListAsync();
     }
 
     public async Task<Product?> GetProductByIdAsync(int id)
