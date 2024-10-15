@@ -11,7 +11,7 @@ public class AccountService : IAccountService
     private readonly ILogger<AccountService> _logger;
     public readonly AppDbContext _context;
 
-    public AccountService(IUserService userService, ILogger<AccountService> logger, AppDbContext context)
+    public AccountService(ILogger<AccountService> logger, AppDbContext context)
     {
         _context = context;
         _logger = logger;
