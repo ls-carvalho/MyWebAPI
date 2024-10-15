@@ -1,20 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
-using MyWebAPI.Controllers;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
-using System.Reflection.Metadata.Ecma335;
 
 namespace MyWebAPI.Services;
 
 public class ProductService : IProductService
 {
-    private readonly ILogger<ProductController> _logger;
+    private readonly ILogger<ProductService> _logger;
     public readonly AppDbContext _context;
 
-    public ProductService(ILogger<ProductController> logger, AppDbContext context)
+    public ProductService(ILogger<ProductService> logger, AppDbContext context)
     {
         _context = context;
         _logger = logger;

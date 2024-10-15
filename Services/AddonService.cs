@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
-using MyWebAPI.Controllers;
-using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 
@@ -9,26 +8,50 @@ namespace MyWebAPI.Services;
 
 public class AddonService : IAddonService
 {
-    private readonly ILogger<AddonController> _logger;
+    private readonly ILogger<AddonService> _logger;
     public readonly AppDbContext _context;
 
-    public AddonService(ILogger<AddonController> logger, AppDbContext context)
+    public AddonService(ILogger<AddonService> logger, AppDbContext context)
     {
         _context = context;
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Addon>> GetAllAddonsAsync()
+    public async Task<IEnumerable<AddonDto>> GetAllAddonsAsync()
     {
-        return await _context.Addons.OrderBy(addon => addon.Id).ToListAsync();
+        var entityList = await _context.Addons.OrderBy(addon => addon.Id).ToListAsync();
+        var dtoList = new List<AddonDto>();
+
+        foreach (var entity in entityList)
+        {
+            var dto = new AddonDto()
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ProductId = entity.ProductId,
+            };
+
+            dtoList.Add(dto);
+        }
+
+        return dtoList;
     }
 
-    public async Task<Addon?> GetAddonByIdAsync(int id)
+    public async Task<AddonDto?> GetAddonByIdAsync(int id)
     {
-        return await _context.Addons.FindAsync(id);
+        var entity = await _context.Addons.Include(a => a.Product).FirstOrDefaultAsync(a => a.Id == id);
+
+        var dto = new AddonDto()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ProductId = entity.ProductId,
+        };
+
+        return dto;
     }
 
-    public async Task<CreateAddonDto> CreateAddonAsync(CreateAddonDto addon)
+    public async Task<AddonDto> CreateAddonAsync(AddonDto addon)
     {
         ValidateDto(addon);
 
@@ -46,10 +69,11 @@ public class AddonService : IAddonService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created an addon with Id: {Id}", entity.Id);
 
+        addon.Id = entity.Id;
         return addon;
     }
 
-    public async Task<UpdateAddonDto> UpdateAddonAsync(UpdateAddonDto addon)
+    public async Task<AddonDto> UpdateAddonAsync(AddonDto addon)
     {
         ValidateDto(addon);
 
@@ -64,7 +88,7 @@ public class AddonService : IAddonService
         return addon;
     }
 
-    public async Task<Addon> DeleteAddonAsync(int id)
+    public async Task<AddonDto> DeleteAddonAsync(int id)
     {
         var entity = await _context.Addons.FindAsync(id);
         if (entity is null)
@@ -77,33 +101,17 @@ public class AddonService : IAddonService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted an addon with Id: {Id}", id);
 
-        return entity;
+        var dto = new AddonDto()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ProductId = entity.ProductId
+        };
+
+        return dto;
     }
 
-    private void ValidateDto(CreateAddonDto addon)
-    {
-        // Não tem efeito prático, precisa mudar
-        if (addon is null)
-        {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon), "Request body invalid");
-        }
-
-        if (string.IsNullOrWhiteSpace(addon.Name))
-        {
-            _logger.LogWarning("Addon name is empty or null");
-            throw new InvalidOperationException("Addon name cannot be empty");
-        }
-
-        var product = _context.Products.Find(addon.ProductId);
-        if (product is null)
-        {
-            _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
-            throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
-        }
-    }
-
-    private void ValidateDto(UpdateAddonDto addon)
+    private void ValidateDto(AddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -32,7 +31,7 @@ public class ProductController : ControllerBase
         var result = await _productService.GetProductByIdAsync(id);
         if (result is null)
         {
-            return NotFound($"Product not found with Id: {id}");
+            return BadRequest($"Product not found with Id: {id}");
         }
 
         return Ok(result);
@@ -47,9 +46,9 @@ public class ProductController : ControllerBase
             var result = await _productService.CreateProductAsync(product);
             return Ok(result);
         }
-        catch (ArgumentNullException ex)
+        catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -62,11 +61,7 @@ public class ProductController : ControllerBase
             var entity = await _productService.UpdateProductAsync(product);
             return Ok(entity);
         }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
@@ -81,11 +76,7 @@ public class ProductController : ControllerBase
             var entity = await _productService.AddProductAddonsAsync(product);
             return Ok(entity);
         }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
@@ -100,7 +91,7 @@ public class ProductController : ControllerBase
             var entity = await _productService.DeleteProductAsync(id);
             return Ok(entity);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }

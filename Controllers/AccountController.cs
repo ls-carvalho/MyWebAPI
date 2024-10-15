@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -32,25 +31,10 @@ public class AccountController : ControllerBase
         var result = await _accountService.GetAccountByIdAsync(id);
         if (result is null)
         {
-            return NotFound($"Account not found with Id: {id}");
+            return BadRequest($"Account not found with Id: {id}");
         }
 
         return Ok(result);
-    }
-
-    [HttpPost]
-    [Route("create")]
-    public async Task<ActionResult<Account>> CreateAccountAsync(CreateAccountDto account)
-    {
-        try
-        {
-            var result = await _accountService.CreateAccountAsync(account);
-            return Ok(result);
-        }
-        catch (ArgumentNullException ex)
-        {
-            return NotFound(ex.Message);
-        }
     }
 
     [HttpPost]
@@ -62,29 +46,9 @@ public class AccountController : ControllerBase
             var entity = await _accountService.UpdateAccountAsync(account);
             return Ok(entity);
         }
-        catch (ArgumentNullException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
-
-    [HttpDelete]
-    [Route("{id}")]
-    public async Task<ActionResult<Account>> DeleteAccountAsync(int id)
-    {
-        try
-        {
-            var entity = await _accountService.DeleteAccountAsync(id);
-            return Ok(entity);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-
     }
 }

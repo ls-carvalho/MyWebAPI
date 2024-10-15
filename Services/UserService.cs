@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
-using MyWebAPI.Controllers;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -9,10 +8,10 @@ namespace MyWebAPI.Services;
 
 public class UserService : IUserService
 {
-    private readonly ILogger<UserController> _logger;
+    private readonly ILogger<UserService> _logger;
     private readonly AppDbContext _context;
 
-    public UserService(ILogger<UserController> logger, AppDbContext context)
+    public UserService(ILogger<UserService> logger, AppDbContext context)
     {
         _context = context;
         _logger = logger;

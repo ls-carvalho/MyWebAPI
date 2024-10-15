@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MyWebAPI.Context;
-using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
 namespace MyWebAPI.Controllers;
@@ -19,7 +17,7 @@ public class AddonController : ControllerBase
 
     [HttpGet]
     [Route("all")]
-    public async Task<ActionResult<IEnumerable<Addon>>> GetAllAddonsAsync()
+    public async Task<ActionResult<IEnumerable<AddonDto>>> GetAllAddonsAsync()
     {
         var result = await _addonService.GetAllAddonsAsync();
         return Ok(result);
@@ -27,12 +25,12 @@ public class AddonController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<Addon>> GetAddonByIdAsync(int id)
+    public async Task<ActionResult<AddonDto>> GetAddonByIdAsync(int id)
     {
         var result = await _addonService.GetAddonByIdAsync(id);
         if (result is null)
         {
-            return NotFound($"Addon not found with Id: {id}");
+            return BadRequest($"Addon not found with Id: {id}");
         }
 
         return Ok(result);
@@ -40,18 +38,14 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<CreateAddonDto>> CreateAddonAsync(CreateAddonDto addon)
+    public async Task<ActionResult<AddonDto>> CreateAddonAsync(AddonDto addon)
     {
         try
         {
             var result = await _addonService.CreateAddonAsync(addon);
             return Ok(result);
         }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
@@ -59,18 +53,14 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<UpdateAddonDto>> UpdateAddonAsync(UpdateAddonDto addon)
+    public async Task<ActionResult<AddonDto>> UpdateAddonAsync(AddonDto addon)
     {
         try
         {
             var entity = await _addonService.UpdateAddonAsync(addon);
             return Ok(entity);
         }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
@@ -78,14 +68,14 @@ public class AddonController : ControllerBase
 
     [HttpDelete]
     [Route("{id}")]
-    public async Task<ActionResult<Addon>> DeleteAddonAsync(int id)
+    public async Task<ActionResult<AddonDto>> DeleteAddonAsync(int id)
     {
         try
         {
             var entity = await _addonService.DeleteAddonAsync(id);
             return Ok(entity);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }

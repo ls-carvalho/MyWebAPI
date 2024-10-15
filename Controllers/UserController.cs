@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -32,7 +31,7 @@ public class UserController : ControllerBase
         var result = await _userService.GetUserByIdAsync(id);
         if (result is null)
         {
-            return NotFound($"User not found with Id: {id}");
+            return BadRequest($"User not found with Id: {id}");
         }
 
         return Ok(result);
@@ -47,9 +46,9 @@ public class UserController : ControllerBase
             var result = await _userService.CreateUserAsync(user);
             return Ok(result);
         }
-        catch (ArgumentNullException ex)
+        catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 
@@ -62,13 +61,9 @@ public class UserController : ControllerBase
             var entity = await _userService.UpdateUserAsync(user);
             return Ok(entity);
         }
-        catch (ArgumentNullException ex)
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
         }
     }
 
@@ -81,9 +76,9 @@ public class UserController : ControllerBase
             var entity = await _userService.DeleteUserAsync(id);
             return Ok(entity);
         }
-        catch (KeyNotFoundException ex)
+        catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return BadRequest(ex.Message);
         }
 
     }
