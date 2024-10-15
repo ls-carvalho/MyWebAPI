@@ -17,26 +17,6 @@ public class AddonService : IAddonService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<AddonDto>> GetAllAddonsAsync()
-    {
-        var entityList = await _context.Addons.OrderBy(addon => addon.Id).ToListAsync();
-        var dtoList = new List<AddonDto>();
-
-        foreach (var entity in entityList)
-        {
-            var dto = new AddonDto()
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                ProductId = entity.ProductId,
-            };
-
-            dtoList.Add(dto);
-        }
-
-        return dtoList;
-    }
-
     public async Task<AddonDto?> GetAddonByIdAsync(int id)
     {
         var entity = await _context.Addons.Include(a => a.Product).FirstOrDefaultAsync(a => a.Id == id);

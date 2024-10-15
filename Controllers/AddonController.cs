@@ -16,14 +16,6 @@ public class AddonController : ControllerBase
     }
 
     [HttpGet]
-    [Route("all")]
-    public async Task<ActionResult<IEnumerable<AddonDto>>> GetAllAddonsAsync()
-    {
-        var result = await _addonService.GetAllAddonsAsync();
-        return Ok(result);
-    }
-
-    [HttpGet]
     [Route("{id}")]
     public async Task<ActionResult<AddonDto>> GetAddonByIdAsync(int id)
     {
