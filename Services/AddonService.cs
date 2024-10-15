@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
+using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
@@ -33,13 +34,21 @@ public class AddonService : IAddonService
         return dto;
     }
 
-    public async Task<AddonDto> CreateAddonAsync(AddonDto addon)
+    public async Task<AddonDto> CreateAddonAsync(CreateAddonDto addon)
     {
-        await ValidateDto(addon);
+        if (string.IsNullOrWhiteSpace(addon.Name))
+        {
+            _logger.LogWarning("Addon name is empty or null");
+            throw new InvalidOperationException("Addon name cannot be empty");
+        }
 
-        // TO-DO: 2ª chamada ao banco para a mesma coisa. Não sei a melhor
-        // forma de tirar isso ainda
-        var product = _context.Products.Find(addon.ProductId);
+        var product = await _context.Products.FindAsync(addon.ProductId);
+        if (product is null)
+        {
+            _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
+            throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
+        }
+
         var entity = new Addon()
         {
             Name = addon.Name,
@@ -51,23 +60,45 @@ public class AddonService : IAddonService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created an addon with Id: {Id}", entity.Id);
 
-        addon.Id = entity.Id;
-        return addon;
+        var returnDto = new AddonDto()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ProductId = entity.ProductId
+
+        };
+        return returnDto;
     }
 
-    public async Task<AddonDto> UpdateAddonAsync(AddonDto addon)
+    public async Task<AddonDto> UpdateAddonAsync(UpdateAddonDto addon)
     {
-        await ValidateDto(addon);
+        if (string.IsNullOrWhiteSpace(addon.Name))
+        {
+            _logger.LogWarning("Addon name is empty or null");
+            throw new InvalidOperationException("Addon name cannot be empty");
+        }
 
         var entity = await _context.Addons.FindAsync(addon.Id);
-        ValidateExists(entity, addon.Id);
+
+        if (entity is null)
+        {
+            _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
+            throw new InvalidOperationException($"Addon not found with Id: {addon.Id}");
+        }
 
         entity.Name = addon.Name;
-        entity.ProductId = addon.ProductId;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an addon with Id: {Id}", addon.Id);
-        return addon;
+
+        var returnDto = new AddonDto()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            ProductId = entity.ProductId
+
+        };
+        return returnDto;
     }
 
     public async Task<AddonDto> DeleteAddonAsync(int id)
@@ -91,36 +122,5 @@ public class AddonService : IAddonService
         };
 
         return dto;
-    }
-
-    private async Task ValidateDto(AddonDto addon)
-    {
-        // Não tem efeito prático, precisa mudar
-        if (addon is null)
-        {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(addon), "Request body invalid");
-        }
-
-        if (string.IsNullOrWhiteSpace(addon.Name))
-        {
-            _logger.LogWarning("Addon name is empty or null");
-            throw new InvalidOperationException("Addon name cannot be empty");
-        }
-
-        var product = await _context.Products.FindAsync(addon.ProductId);
-        if (product is null)
-        {
-            _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);
-            throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
-        }
-    }
-
-    private void ValidateExists(Addon? entity, int id)
-    {
-        if (entity is null)
-        {
-            throw new InvalidOperationException($"Addon not found with Id: {id}");
-        }
     }
 }

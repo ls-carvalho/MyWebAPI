@@ -1,10 +1,11 @@
-﻿using MyWebAPI.DataTransferObject.ReturnDtos;
+﻿using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 
 namespace MyWebAPI.Services.Interfaces;
 public interface IAddonService
 {
     Task<AddonDto?> GetAddonByIdAsync(int id);
-    Task<AddonDto> CreateAddonAsync(AddonDto addon);
-    Task<AddonDto> UpdateAddonAsync(AddonDto addon);
+    Task<AddonDto> CreateAddonAsync(CreateAddonDto addon);
+    Task<AddonDto> UpdateAddonAsync(UpdateAddonDto addon);
     Task<AddonDto> DeleteAddonAsync(int id);
 }

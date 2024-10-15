@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
@@ -30,7 +31,7 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<AddonDto>> CreateAddonAsync(AddonDto addon)
+    public async Task<ActionResult<AddonDto>> CreateAddonAsync(CreateAddonDto addon)
     {
         try
         {
@@ -45,7 +46,7 @@ public class AddonController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<AddonDto>> UpdateAddonAsync(AddonDto addon)
+    public async Task<ActionResult<AddonDto>> UpdateAddonAsync(UpdateAddonDto addon)
     {
         try
         {
