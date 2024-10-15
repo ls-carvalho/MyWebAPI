@@ -1,9 +1,7 @@
-﻿using MyWebAPI.DataTransferObject.ReturnDtos;
-
-namespace MyWebAPI.DataTransferObject;
+﻿namespace MyWebAPI.DataTransferObject;
 
 public class AddProductAddonsDto
 {
     public int Id { get; set; }
-    public ICollection<AddonDto> Addons { get; set; } = new List<AddonDto>();
+    public ICollection<int> AddonIds { get; set; } = new List<int>();
 }

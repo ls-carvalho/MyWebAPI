@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
 namespace MyWebAPI.Controllers;
@@ -18,7 +18,7 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Route("all")]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAllProductsAsync()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProductsAsync()
     {
         var result = await _productService.GetAllProductsAsync();
         return Ok(result);
@@ -26,7 +26,7 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<Product>> GetProductByIdAsync(int id)
+    public async Task<ActionResult<ProductDto>> GetProductByIdAsync(int id)
     {
         var result = await _productService.GetProductByIdAsync(id);
         if (result is null)
@@ -39,7 +39,7 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<Product>> CreateProductAsync(CreateProductDto product)
+    public async Task<ActionResult<ProductDto>> CreateProductAsync(CreateProductDto product)
     {
         try
         {
@@ -54,7 +54,7 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<Product>> UpdateProductAsync(UpdateProductDto product)
+    public async Task<ActionResult<ProductDto>> UpdateProductAsync(UpdateProductDto product)
     {
         try
         {
@@ -69,7 +69,7 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [Route("add-addons")]
-    public async Task<ActionResult<Product>> AddProductAddonsAsync(AddProductAddonsDto product)
+    public async Task<ActionResult<ProductDto>> AddProductAddonsAsync(AddProductAddonsDto product)
     {
         try
         {
@@ -84,7 +84,7 @@ public class ProductController : ControllerBase
 
     [HttpDelete]
     [Route("{id}")]
-    public async Task<ActionResult<Product>> DeleteProductAsync(int id)
+    public async Task<ActionResult<ProductDto>> DeleteProductAsync(int id)
     {
         try
         {

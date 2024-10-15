@@ -21,6 +21,8 @@ public class AddonService : IAddonService
     {
         var entity = await _context.Addons.Include(a => a.Product).FirstOrDefaultAsync(a => a.Id == id);
 
+        if (entity == null) return null;
+
         var dto = new AddonDto()
         {
             Id = entity.Id,
@@ -33,7 +35,7 @@ public class AddonService : IAddonService
 
     public async Task<AddonDto> CreateAddonAsync(AddonDto addon)
     {
-        ValidateDto(addon);
+        await ValidateDto(addon);
 
         // TO-DO: 2ª chamada ao banco para a mesma coisa. Não sei a melhor
         // forma de tirar isso ainda
@@ -55,7 +57,7 @@ public class AddonService : IAddonService
 
     public async Task<AddonDto> UpdateAddonAsync(AddonDto addon)
     {
-        ValidateDto(addon);
+        await ValidateDto(addon);
 
         var entity = await _context.Addons.FindAsync(addon.Id);
         ValidateExists(entity, addon.Id);
@@ -91,7 +93,7 @@ public class AddonService : IAddonService
         return dto;
     }
 
-    private void ValidateDto(AddonDto addon)
+    private async Task ValidateDto(AddonDto addon)
     {
         // Não tem efeito prático, precisa mudar
         if (addon is null)
@@ -106,7 +108,7 @@ public class AddonService : IAddonService
             throw new InvalidOperationException("Addon name cannot be empty");
         }
 
-        var product = _context.Products.Find(addon.ProductId);
+        var product = await _context.Products.FindAsync(addon.ProductId);
         if (product is null)
         {
             _logger.LogWarning("Product not found with Id: {Id}", addon.ProductId);

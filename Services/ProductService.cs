@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 
@@ -17,14 +18,44 @@ public class ProductService : IProductService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Product>> GetAllProductsAsync()
+    public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
     {
-        return await _context.Products.Include(p => p.Addons).Include(p => p.Accounts).OrderBy(product => product.Id).ToListAsync();
+        var entityList = await _context.Products.Include(p => p.Addons).Include(p => p.Accounts).OrderBy(product => product.Id).ToListAsync();
+        var dtoList = new List<ProductDto>();
+
+        foreach (var entity in entityList)
+        {
+            var dto = new ProductDto()
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Value = entity.Value,
+                AddonIds = entity.Addons.Select(addon => addon.Id).ToList()
+            };
+
+            dtoList.Add(dto);
+        }
+
+        return dtoList;
     }
 
-    public async Task<Product?> GetProductByIdAsync(int id)
+    public async Task<ProductDto?> GetProductByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        var entity = await _context.Products.FindAsync(id);
+
+        if (entity == null) return null;
+
+        var dto = new ProductDto()
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            Value = entity.Value,
+            AddonIds = entity.Addons.Select(addon => addon.Id).ToList()
+        };
+
+        return dto;
     }
 
     public async Task<Product> CreateProductAsync(CreateProductDto product)
@@ -36,7 +67,6 @@ public class ProductService : IProductService
             Name = product.Name,
             Description = product.Description,
             Value = product.Value,
-            Addons = product.Addons,
         };
 
         _context.Products.Add(entity);
@@ -56,7 +86,6 @@ public class ProductService : IProductService
         entity.Name = product.Name;
         entity.Description = product.Description;
         entity.Value = product.Value;
-        entity.Addons = product.Addons;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
@@ -66,11 +95,20 @@ public class ProductService : IProductService
     public async Task<Product> AddProductAddonsAsync(AddProductAddonsDto product)
     {
         var entity = await _context.Products.FindAsync(product.Id);
-        ValidateExists(entity, product.Id);
-
-        foreach (var item in product.Addons)
+        if (entity == null)
         {
-            entity.Addons.Add(item);
+            _logger.LogWarning("Product not found with Id: {Id}", product.Id);
+            throw new InvalidOperationException($"Product not found with Id: {product.Id}");
+        }
+
+        foreach (var addonId in product.AddonIds)
+        {
+            var addonEntity = await _context.Addons.FindAsync(addonId);
+            if (addonEntity is null) throw new Exception("Addon não encontrado");
+
+            if (entity.Addons.Contains(addonEntity)) throw new Exception("Addon já adicionado anteriormente");
+
+            entity.Addons.Add(addonEntity);
         }
 
         await _context.SaveChangesAsync();

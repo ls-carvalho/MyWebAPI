@@ -45,7 +45,6 @@ public class AccountService : IAccountService
         }
 
         entity.DisplayName = account.DisplayName;
-        entity.User = account.User;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an account with Id: {Id}", account.Id);
