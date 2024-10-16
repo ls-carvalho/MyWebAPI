@@ -69,11 +69,11 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [Route("add-addons")]
-    public async Task<ActionResult<ProductDto>> AddProductAddonsAsync(AddProductAddonsDto product)
+    public async Task<ActionResult<ProductDto>> AddProductAddonsAsync(AddAddonsToProductDto product)
     {
         try
         {
-            var entity = await _productService.AddProductAddonsAsync(product);
+            var entity = await _productService.AddAddonsAsync(product);
             return Ok(entity);
         }
         catch (Exception ex)

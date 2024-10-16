@@ -20,7 +20,11 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
     {
-        var entityList = await _context.Products.Include(p => p.Addons).Include(p => p.Accounts).OrderBy(product => product.Id).ToListAsync();
+        var entityList = await _context.Products
+            .Include(p => p.Addons)
+            .OrderBy(product => product.Id)
+            .ToListAsync();
+
         var dtoList = new List<ProductDto>();
 
         foreach (var entity in entityList)
@@ -47,7 +51,9 @@ public class ProductService : IProductService
 
     public async Task<ProductDto?> GetProductByIdAsync(int id)
     {
-        var entity = await _context.Products.Include(p => p.Addons).FirstOrDefaultAsync(p => p.Id == id);
+        var entity = await _context.Products
+            .Include(p => p.Addons)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (entity == null) return null;
 
@@ -91,7 +97,7 @@ public class ProductService : IProductService
 
         _context.Products.Add(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Created a product with Id: {Id}", entity.Id);
+        _logger.LogInformation("Created a addonsToProductDto with Id: {Id}", entity.Id);
 
         var returnDto = new ProductDto()
         {
@@ -123,7 +129,9 @@ public class ProductService : IProductService
             throw new InvalidOperationException("Product description cannot be empty");
         }
 
-        var entity = await _context.Products.Include(p => p.Addons).FirstOrDefaultAsync(p => p.Id == product.Id);
+        var entity = await _context.Products
+            .Include(p => p.Addons)
+            .FirstOrDefaultAsync(p => p.Id == product.Id);
 
         if (entity is null)
         {
@@ -136,7 +144,7 @@ public class ProductService : IProductService
         entity.Value = product.Value;
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
+        _logger.LogInformation("Updated a addonsToProductDto with Id: {Id}", product.Id);
 
         var returnDto = new ProductDto()
         {
@@ -154,35 +162,51 @@ public class ProductService : IProductService
         return returnDto;
     }
 
-    public async Task<ProductDto> AddProductAddonsAsync(AddProductAddonsDto product)
+    public async Task<ProductDto> AddAddonsAsync(AddAddonsToProductDto addonsToProductDto)
     {
-        var entity = await _context.Products.FindAsync(product.Id);
-        if (entity == null)
+        var product = await _context.Products
+            .Include(p => p.Addons)
+            .FirstOrDefaultAsync(p => p.Id == addonsToProductDto.Id);
+
+        if (product == null)
         {
-            _logger.LogWarning("Product not found with Id: {Id}", product.Id);
-            throw new InvalidOperationException($"Product not found with Id: {product.Id}");
+            _logger.LogWarning("Product not found with Id: {Id}", addonsToProductDto.Id);
+            throw new InvalidOperationException($"Product not found with Id: {addonsToProductDto.Id}");
         }
 
-        foreach (var addonId in product.AddonIds)
+        foreach (var addon in addonsToProductDto.Addons)
         {
-            var addonEntity = await _context.Addons.FindAsync(addonId);
-            if (addonEntity is null) throw new Exception("Addon não encontrado");
+            if (addon.ProductId != addonsToProductDto.Id)
+            {
+                _logger.LogWarning("Addon.ProductId ({AddonProductId}) differs from " +
+                    "ProductId passed ({ProductId})", addon.ProductId, addonsToProductDto.Id);
 
-            if (entity.Addons.Contains(addonEntity)) throw new Exception("Addon já adicionado anteriormente");
+                throw new InvalidOperationException($"Addon.ProductId ({addon.ProductId}) differs from " +
+                    $"ProductId pased ({addonsToProductDto.Id})");
+            }
 
-            entity.Addons.Add(addonEntity);
+            var addonEntity = AddonDtoToEntityAsync(addon, product);
+
+            var existingAddonNames = product.Addons.Select(a => a.Name);
+            if (existingAddonNames.Contains(addon.Name))
+            {
+                _logger.LogWarning("Addon with name '{addonName}' already exists", addon.Name);
+                throw new Exception(($"Addon with name '{addon.Name}' already exists"));
+            }
+
+            product.Addons.Add(addonEntity);
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
+        _logger.LogInformation("Added Addons to a addonsToProductDto with Id: {Id}", addonsToProductDto.Id);
 
         var returnDto = new ProductDto()
         {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonDto()
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Value = product.Value,
+            Addons = product.Addons.Select(addon => new AddonDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
@@ -194,7 +218,10 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> DeleteProductAsync(int id)
     {
-        var entity = await _context.Products.FindAsync(id);
+        var entity = await _context.Products
+            .Include(p => p.Addons)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (entity is null)
         {
             _logger.LogWarning("Product not found");
@@ -203,7 +230,7 @@ public class ProductService : IProductService
 
         _context.Products.Remove(entity);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Deleted a product with Id: {Id}", id);
+        _logger.LogInformation("Deleted a addonsToProductDto with Id: {Id}", id);
 
         var returnDto = new ProductDto()
         {
@@ -219,5 +246,23 @@ public class ProductService : IProductService
             }).ToList()
         };
         return returnDto;
+    }
+
+    private Addon AddonDtoToEntityAsync(CreateAddonDto addon, Product product)
+    {
+        if (string.IsNullOrWhiteSpace(addon.Name))
+        {
+            _logger.LogWarning("Addon name is empty or null");
+            throw new InvalidOperationException("Addon name cannot be empty");
+        }
+
+        var entity = new Addon()
+        {
+            Name = addon.Name,
+            ProductId = addon.ProductId,
+            Product = product
+        };
+
+        return entity;
     }
 }
