@@ -3,6 +3,7 @@ using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace MyWebAPI.Services;
 
@@ -29,14 +30,64 @@ public class UserService : IUserService
 
     public async Task<User> CreateUserAsync(CreateUserDto user)
     {
-        // Não tem efeito prático, precisa mudar
-        if (user is null)
+        if (user.Username.Length > 30)
         {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(user), "Request body invalid");
+            _logger.LogWarning("Username length cannot be more than 30");
+            throw new KeyNotFoundException("Username length cannot be more than 30");
         }
 
-        // Validações pertinentes seriam realizadas nesse momento
+        if (user.Username.Length < 5)
+        {
+            _logger.LogWarning("Username length cannot be less than 5");
+            throw new KeyNotFoundException("Username length cannot be less than 5");
+        }
+
+        var usernameHasSpaceCharacter = Regex.IsMatch(user.Username, @"\s");
+        if (usernameHasSpaceCharacter)
+        {
+            _logger.LogWarning("Username cannot have any space characters");
+            throw new KeyNotFoundException("Username cannot have any space characters");
+        }
+
+        if (user.Username.Length < 8)
+        {
+            _logger.LogWarning("Username length cannot be less than 8");
+            throw new KeyNotFoundException("Username length cannot be less than 8");
+        }
+
+        var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
+        if (!hasUpperCase)
+        {
+            _logger.LogWarning("Password must have at least one upper case character");
+            throw new KeyNotFoundException("Password must have at least one upper case character");
+        }
+
+        var hasLowerCase = Regex.IsMatch(user.Password, "[a-z]");
+        if (!hasLowerCase)
+        {
+            _logger.LogWarning("Password must have at least one lower case character");
+            throw new KeyNotFoundException("Password must have at least one lower case character");
+        }
+
+        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>_]");
+        if (!hasSpecialCharacter)
+        {
+            _logger.LogWarning("Password must have at least one special character");
+            throw new KeyNotFoundException("Password must have at least one special character");
+        }
+
+        var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
+        if (passwordHasSpaceCharacter)
+        {
+            _logger.LogWarning("Password cannot have any space characters");
+            throw new KeyNotFoundException("Password cannot have any space characters");
+        }
+
+        if (user.AccountDisplayName.Length > 20)
+        {
+            _logger.LogWarning("AccountDisplayName length cannot be more than 20");
+            throw new KeyNotFoundException("AccountDisplayName length cannot be more than 20");
+        }
 
         var entity = new User()
         {
@@ -44,7 +95,7 @@ public class UserService : IUserService
             Password = user.Password,
             Account = new Account()
             {
-                DisplayName = user.Account.DisplayName,
+                DisplayName = user.AccountDisplayName,
             },
         };
 
@@ -57,15 +108,60 @@ public class UserService : IUserService
 
     public async Task<User> UpdateUserAsync(UpdateUserDto user)
     {
-        // Não tem efeito prático, precisa mudar
-        if (user is null)
+        if (user.Username.Length > 30)
         {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(user), "Request body invalid");
+            _logger.LogWarning("Username length cannot be more than 30");
+            throw new KeyNotFoundException("Username length cannot be more than 30");
+        }
+
+        if (user.Username.Length < 5)
+        {
+            _logger.LogWarning("Username length cannot be less than 5");
+            throw new KeyNotFoundException("Username length cannot be less than 5");
+        }
+
+        var usernameHasSpaceCharacter = Regex.IsMatch(user.Username, @"\s");
+        if (usernameHasSpaceCharacter)
+        {
+            _logger.LogWarning("Username cannot have any space characters");
+            throw new KeyNotFoundException("Username cannot have any space characters");
+        }
+
+        if (user.Password.Length < 8)
+        {
+            _logger.LogWarning("Username length cannot be less than 8");
+            throw new KeyNotFoundException("Username length cannot be less than 8");
+        }
+
+        var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
+        if (!hasUpperCase)
+        {
+            _logger.LogWarning("Password must have at least one upper case character");
+            throw new KeyNotFoundException("Password must have at least one upper case character");
+        }
+
+        var hasLowerCase = Regex.IsMatch(user.Password, "[a-z]");
+        if (!hasLowerCase)
+        {
+            _logger.LogWarning("Password must have at least one lower case character");
+            throw new KeyNotFoundException("Password must have at least one lower case character");
+        }
+
+        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
+        if (!hasSpecialCharacter)
+        {
+            _logger.LogWarning("Password must have at least one special character");
+            throw new KeyNotFoundException("Password must have at least one special character");
+        }
+
+        var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
+        if (passwordHasSpaceCharacter)
+        {
+            _logger.LogWarning("Password cannot have any space characters");
+            throw new KeyNotFoundException("Password cannot have any space characters");
         }
 
         var entity = await _context.Users.FindAsync(user.Id);
-
         if (entity is null)
         {
             _logger.LogWarning("User not found with Id: {Id}", user.Id);

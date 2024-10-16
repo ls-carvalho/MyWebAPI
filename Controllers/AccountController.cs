@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
 namespace MyWebAPI.Controllers;
@@ -18,7 +18,7 @@ public class AccountController : ControllerBase
 
     [HttpGet]
     [Route("all")]
-    public async Task<ActionResult<IEnumerable<Account>>> GetAllAccountsAsync()
+    public async Task<ActionResult<IEnumerable<AccountDto>>> GetAllAccountsAsync()
     {
         var result = await _accountService.GetAllAccountsAsync();
         return Ok(result);
@@ -26,7 +26,7 @@ public class AccountController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<Account>> GetAccountByIdAsync(int id)
+    public async Task<ActionResult<AccountDto>> GetAccountByIdAsync(int id)
     {
         var result = await _accountService.GetAccountByIdAsync(id);
         if (result is null)
@@ -39,7 +39,7 @@ public class AccountController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<Account>> UpdateAccountAsync(UpdateAccountDto account)
+    public async Task<ActionResult<AccountDto>> UpdateAccountAsync(UpdateAccountDto account)
     {
         try
         {

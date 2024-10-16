@@ -79,7 +79,6 @@ public class AddonService : IAddonService
         }
 
         var entity = await _context.Addons.FindAsync(addon.Id);
-
         if (entity is null)
         {
             _logger.LogWarning("Addon not found with Id: {Id}", addon.Id);
