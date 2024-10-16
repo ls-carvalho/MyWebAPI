@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
 namespace MyWebAPI.Controllers;
@@ -18,7 +18,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Route("all")]
-    public async Task<ActionResult<IEnumerable<User>>> GetAllUsersAsync()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsersAsync()
     {
         var result = await _userService.GetAllUsersAsync();
         return Ok(result);
@@ -26,7 +26,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<User>> GetUserByIdAsync(int id)
+    public async Task<ActionResult<UserDto>> GetUserByIdAsync(int id)
     {
         var result = await _userService.GetUserByIdAsync(id);
         if (result is null)
@@ -39,7 +39,7 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<User>> CreateUserAsync(CreateUserDto user)
+    public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto user)
     {
         try
         {
@@ -54,7 +54,7 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<User>> UpdateUserAsync(UpdateUserDto user)
+    public async Task<ActionResult<UserDto>> UpdateUserAsync(UpdateUserDto user)
     {
         try
         {
@@ -69,7 +69,7 @@ public class UserController : ControllerBase
 
     [HttpDelete]
     [Route("{id}")]
-    public async Task<ActionResult<User>> DeleteUserAsync(int id)
+    public async Task<ActionResult<UserDto>> DeleteUserAsync(int id)
     {
         try
         {

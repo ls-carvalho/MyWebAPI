@@ -29,19 +29,17 @@ public class AccountService : IAccountService
 
     public async Task<Account> UpdateAccountAsync(UpdateAccountDto account)
     {
-        // Não tem efeito prático, precisa mudar
-        if (account is null)
-        {
-            _logger.LogWarning("Request body invalid");
-            throw new ArgumentNullException(nameof(account), "Request body invalid");
-        }
-
         var entity = await _context.Accounts.FindAsync(account.Id);
-
         if (entity is null)
         {
             _logger.LogWarning("Account not found with Id: {Id}", account.Id);
             throw new KeyNotFoundException($"Account not found with Id: {account.Id}");
+        }
+
+        if (account.DisplayName.Length > 20)
+        {
+            _logger.LogWarning("DisplayName length cannot be more than 20");
+            throw new KeyNotFoundException("DisplayName length cannot be more than 20");
         }
 
         entity.DisplayName = account.DisplayName;
