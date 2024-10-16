@@ -51,4 +51,19 @@ public class AccountController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpPost]
+    [Route("add-product")]
+    public async Task<ActionResult<AccountDto>> AddProductToAccountAsync(AddProductToAccountDto accountProduct)
+    {
+        try
+        {
+            var entity = await _accountService.AddProductToAccountAsync(accountProduct);
+            return Ok(entity);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
