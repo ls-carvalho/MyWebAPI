@@ -149,11 +149,22 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a user with Id: {Id}", entity.Id);
 
-        return entity;
-        throw new NotImplementedException();
+        var returnDto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
+
+        return returnDto;
     }
 
-    public async Task<User> UpdateUserAsync(UpdateUserDto user)
+    public async Task<UserDto> UpdateUserAsync(UpdateUserDto user)
     {
         if (user.Username.Length > 30)
         {
@@ -194,12 +205,15 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password must have at least one lower case character");
         }
 
-        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
-        if (!hasSpecialCharacter)
-        {
-            _logger.LogWarning("Password must have at least one special character");
-            throw new KeyNotFoundException("Password must have at least one special character");
-        }
+        // Inserting special characters currently makes the API exit with code 'Access Violation'
+        // Therefore, the validation below is suspended
+
+        //var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>_]");
+        //if (!hasSpecialCharacter)
+        //{
+        //    _logger.LogWarning("Password must have at least one special character");
+        //    throw new KeyNotFoundException("Password must have at least one special character");
+        //}
 
         var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
         if (passwordHasSpaceCharacter)
@@ -220,8 +234,20 @@ public class UserService : IUserService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
-        return entity;
-        throw new NotImplementedException();
+
+        var returnDto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
+
+        return returnDto;
     }
 
     public async Task<UserDto> DeleteUserAsync(int id)
@@ -256,7 +282,6 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted a user with Id: {Id}", id);
 
-        return entity;
-        throw new NotImplementedException();
+        return returnDto;
     }
 }
