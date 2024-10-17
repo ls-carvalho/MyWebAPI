@@ -34,16 +34,13 @@ public class AccountService : IAccountService
             var products = new List<ProductDto>();
             foreach (var produto in entity.Products)
             {
-                var addons = new List<AddonDto>();
+                var addons = new List<AddonWithoutProductIdDto>();
                 foreach (var addon in produto.Product.Addons)
                 {
-                    var addonItem = new AddonDto()
+                    var addonItem = new AddonWithoutProductIdDto()
                     {
                         Id = addon.Id,
-                        Name = addon.Name,
-                        // Pode ser melhor criar uma outra DTO sem esse ID
-                        // E então lembrar de remover essa property desnecessária.
-                        ProductId = addon.ProductId,
+                        Name = addon.Name
                     };
                     addons.Add(addonItem);
                 }
@@ -86,16 +83,13 @@ public class AccountService : IAccountService
         var products = new List<ProductDto>();
         foreach (var produto in entity.Products)
         {
-            var addons = new List<AddonDto>();
+            var addons = new List<AddonWithoutProductIdDto>();
             foreach (var addon in produto.Product.Addons)
             {
-                var addonItem = new AddonDto()
+                var addonItem = new AddonWithoutProductIdDto()
                 {
                     Id = addon.Id,
                     Name = addon.Name,
-                    // Pode ser melhor criar uma outra DTO sem esse ID
-                    // E então lembrar de remover essa property desnecessária.
-                    ProductId = addon.ProductId,
                 };
                 addons.Add(addonItem);
             }
@@ -203,16 +197,13 @@ public class AccountService : IAccountService
         var products = new List<ProductDto>();
         foreach (var produto in account.Products)
         {
-            var addons = new List<AddonDto>();
+            var addons = new List<AddonWithoutProductIdDto>();
             foreach (var addon in produto.Product.Addons)
             {
-                var addonItem = new AddonDto()
+                var addonItem = new AddonWithoutProductIdDto()
                 {
                     Id = addon.Id,
                     Name = addon.Name,
-                    // Pode ser melhor criar uma outra DTO sem esse ID
-                    // E então lembrar de remover essa property desnecessária.
-                    ProductId = addon.ProductId,
                 };
                 addons.Add(addonItem);
             }
@@ -278,16 +269,13 @@ public class AccountService : IAccountService
         var produtos = new List<ProductDto>();
         foreach (var produto in account.Products)
         {
-            var addons = new List<AddonDto>();
+            var addons = new List<AddonWithoutProductIdDto>();
             foreach (var addon in produto.Product.Addons)
             {
-                var addonItem = new AddonDto()
+                var addonItem = new AddonWithoutProductIdDto()
                 {
                     Id = addon.Id,
                     Name = addon.Name,
-                    // Pode ser melhor criar uma outra DTO sem esse ID
-                    // E então lembrar de remover essa property desnecessária.
-                    ProductId = addon.ProductId,
                 };
                 addons.Add(addonItem);
             }

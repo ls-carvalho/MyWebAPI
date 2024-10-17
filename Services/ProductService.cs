@@ -35,11 +35,10 @@ public class ProductService : IProductService
                 Name = entity.Name,
                 Description = entity.Description,
                 Value = entity.Value,
-                Addons = entity.Addons.Select(addon => new AddonDto()
+                Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
                 {
                     Id = addon.Id,
                     Name = addon.Name,
-                    ProductId = addon.ProductId,
                 }).ToList()
             };
 
@@ -63,11 +62,10 @@ public class ProductService : IProductService
             Name = entity.Name,
             Description = entity.Description,
             Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonDto()
+            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
-                ProductId = addon.ProductId,
             }).ToList()
         };
 
@@ -105,11 +103,10 @@ public class ProductService : IProductService
             Name = entity.Name,
             Description = entity.Description,
             Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonDto()
+            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
-                ProductId = addon.ProductId,
             }).ToList()
         };
         return returnDto;
@@ -152,11 +149,10 @@ public class ProductService : IProductService
             Name = entity.Name,
             Description = entity.Description,
             Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonDto()
+            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
-                ProductId = addon.ProductId,
             }).ToList()
         };
 
@@ -177,15 +173,6 @@ public class ProductService : IProductService
 
         foreach (var addon in addonsToProductDto.Addons)
         {
-            if (addon.ProductId != addonsToProductDto.Id)
-            {
-                _logger.LogWarning("Addon.ProductId ({AddonProductId}) differs from " +
-                    "ProductId passed ({ProductId})", addon.ProductId, addonsToProductDto.Id);
-
-                throw new InvalidOperationException($"Addon.ProductId ({addon.ProductId}) differs from " +
-                    $"ProductId pased ({addonsToProductDto.Id})");
-            }
-
             var addonEntity = AddonDtoToEntityAsync(addon, product);
 
             var existingAddonNames = product.Addons.Select(a => a.Name);
@@ -207,11 +194,10 @@ public class ProductService : IProductService
             Name = product.Name,
             Description = product.Description,
             Value = product.Value,
-            Addons = product.Addons.Select(addon => new AddonDto()
+            Addons = product.Addons.Select(addon => new AddonWithoutProductIdDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
-                ProductId = addon.ProductId,
             }).ToList()
         };
 
@@ -240,17 +226,16 @@ public class ProductService : IProductService
             Name = entity.Name,
             Description = entity.Description,
             Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonDto()
+            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
             {
                 Id = addon.Id,
                 Name = addon.Name,
-                ProductId = addon.ProductId,
             }).ToList()
         };
         return returnDto;
     }
 
-    private Addon AddonDtoToEntityAsync(CreateAddonDto addon, Product product)
+    private Addon AddonDtoToEntityAsync(CreateAddonWithoutProductIdDto addon, Product product)
     {
         if (string.IsNullOrWhiteSpace(addon.Name))
         {
@@ -261,7 +246,6 @@ public class ProductService : IProductService
         var entity = new Addon()
         {
             Name = addon.Name,
-            ProductId = addon.ProductId,
             Product = product
         };
 
