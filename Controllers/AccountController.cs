@@ -54,11 +54,26 @@ public class AccountController : ControllerBase
 
     [HttpPost]
     [Route("add-product")]
-    public async Task<ActionResult<AccountDto>> AddProductToAccountAsync(AddProductToAccountDto accountProduct)
+    public async Task<ActionResult<AccountDto>> AddProductToAccountAsync(AccountProductIdsDto accountProduct)
     {
         try
         {
             var entity = await _accountService.AddProductToAccountAsync(accountProduct);
+            return Ok(entity);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("remove-product")]
+    public async Task<ActionResult<AccountDto>> RemoveProductFromAccountAsync(AccountProductIdsDto accountProduct)
+    {
+        try
+        {
+            var entity = await _accountService.RemoveProductFromAccountAsync(accountProduct);
             return Ok(entity);
         }
         catch (Exception ex)

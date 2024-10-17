@@ -7,5 +7,7 @@ public interface IAccountService
     Task<IEnumerable<AccountDto>> GetAllAccountsAsync();
     Task<AccountDto?> GetAccountByIdAsync(int id);
     Task<AccountDto> UpdateAccountAsync(UpdateAccountDto account);
-    Task<AccountDto> AddProductToAccountAsync(AddProductToAccountDto accountProduct);
+    Task<AccountDto> AddProductToAccountAsync(AccountProductIdsDto accountProduct);
+    Task<AccountDto> RemoveProductFromAccountAsync(AccountProductIdsDto accountProduct);
+
 }

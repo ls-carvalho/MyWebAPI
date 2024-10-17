@@ -1,6 +1,6 @@
 ﻿namespace MyWebAPI.DataTransferObject;
 
-public class AddProductToAccountDto
+public class AccountProductIdsDto
 {
     public int AccountId { get; set; }
     public int ProductId { get; set; }

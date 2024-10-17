@@ -21,6 +21,9 @@ public class AccountService : IAccountService
     public async Task<IEnumerable<AccountDto>> GetAllAccountsAsync()
     {
         var entityList = await _context.Accounts
+            .Include(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
             .OrderBy(account => account.Id)
             .ToListAsync();
 
@@ -28,10 +31,39 @@ public class AccountService : IAccountService
 
         foreach (var entity in entityList)
         {
+            var products = new List<ProductDto>();
+            foreach (var produto in entity.Products)
+            {
+                var addons = new List<AddonDto>();
+                foreach (var addon in produto.Product.Addons)
+                {
+                    var addonItem = new AddonDto()
+                    {
+                        Id = addon.Id,
+                        Name = addon.Name,
+                        // Pode ser melhor criar uma outra DTO sem esse ID
+                        // E então lembrar de remover essa property desnecessária.
+                        ProductId = addon.ProductId,
+                    };
+                    addons.Add(addonItem);
+                }
+
+                var productItem = new ProductDto()
+                {
+                    Id = produto.Product.Id,
+                    Name = produto.Product.Name,
+                    Description = produto.Product.Description,
+                    Value = produto.Product.Value,
+                    Addons = addons
+                };
+                products.Add(productItem);
+            }
+
             var dto = new AccountDto()
             {
                 Id = entity.Id,
                 DisplayName = entity.DisplayName,
+                Products = products,
             };
 
             dtoList.Add(dto);
@@ -42,22 +74,53 @@ public class AccountService : IAccountService
 
     public async Task<AccountDto?> GetAccountByIdAsync(int id)
     {
+        // Retornar a Account completa em forma de DTO
         var entity = await _context.Accounts
-            .FirstOrDefaultAsync(a => a.Id == id);
+            .Include(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
+            .FirstAsync(a => a.Id == id);
 
         if (entity == null) return null;
+
+        var products = new List<ProductDto>();
+        foreach (var produto in entity.Products)
+        {
+            var addons = new List<AddonDto>();
+            foreach (var addon in produto.Product.Addons)
+            {
+                var addonItem = new AddonDto()
+                {
+                    Id = addon.Id,
+                    Name = addon.Name,
+                    // Pode ser melhor criar uma outra DTO sem esse ID
+                    // E então lembrar de remover essa property desnecessária.
+                    ProductId = addon.ProductId,
+                };
+                addons.Add(addonItem);
+            }
+
+            var productItem = new ProductDto()
+            {
+                Id = produto.Product.Id,
+                Name = produto.Product.Name,
+                Description = produto.Product.Description,
+                Value = produto.Product.Value,
+                Addons = addons
+            };
+            products.Add(productItem);
+        }
 
         var dto = new AccountDto()
         {
             Id = entity.Id,
             DisplayName = entity.DisplayName,
+            Products = products
         };
 
         return dto;
     }
 
-    // TODO - ARTHUR: Alterar o GetAccountByIdAsync e GetAllAccountsAsync para retornar a lista de produtos associados a conta.
-    // DICA: Combine a lógica de mapeamento do metodo de adicionar relação com a lógica que você já usou em outros GETs.
     public async Task<AccountDto> UpdateAccountAsync(UpdateAccountDto account)
     {
         var entity = await _context.Accounts.FindAsync(account.Id);
@@ -87,23 +150,31 @@ public class AccountService : IAccountService
         return returnDto;
     }
 
-    public async Task<AccountDto> AddProductToAccountAsync(AddProductToAccountDto accountProduct)
+    public async Task<AccountDto> AddProductToAccountAsync(AccountProductIdsDto accountProduct)
     {
-        // Recuperar a Account
+        // Recuperar e validar a Account
         var accountEntity = await _context.Accounts.FindAsync(accountProduct.AccountId);
+        if (accountEntity is null)
+        {
+            _logger.LogWarning("Account not found with Id: {Id}", accountProduct.AccountId);
+            throw new InvalidOperationException($"Account with Id {accountProduct.AccountId} not found");
+        }
 
-        // Validar a existencia da Account
-        if (accountEntity is null) throw new Exception("Account com ID " + accountProduct.AccountId + " não encontrada!");
-
-        // Recuperar o Product
+        // Recuperar e validar o Product
         var productEntity = await _context.Products.FindAsync(accountProduct.ProductId);
+        if (productEntity is null)
+        {
+            _logger.LogWarning("Product not found with Id: {Id}", accountProduct.ProductId);
+            throw new InvalidOperationException($"Product with Id {accountProduct.ProductId} not found");
+        }
 
-        // Validar a existencia do Product
-        if (productEntity is null) throw new Exception("Product com ID " + accountProduct.ProductId + " não encontrado!");
-
-        // Validar a existencia da futura relação
+        // Validar que a futura relação não exista previamente
         var accountProductEntity = await _context.AccountProducts.FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
-        if (accountProductEntity is not null) throw new Exception("A account " + accountProduct.AccountId + " já possui o product " + accountProduct.ProductId + "!");
+        if (accountProductEntity is not null)
+        {
+            _logger.LogWarning("Account {AccountId} already has product {ProductId}", accountProduct.AccountId, accountProduct.ProductId);
+            throw new InvalidOperationException($"Account {accountProduct.AccountId} already has product {accountProduct.ProductId}");
+        }
 
         // Criar a relação
         //accountProductEntity = new AccountProduct()
@@ -127,8 +198,82 @@ public class AccountService : IAccountService
             .Include(a => a.Products)
             .ThenInclude(ap => ap.Product)
             .ThenInclude(p => p.Addons)
-            .FirstAsync(a => a.Id == accountProductEntity.Account.Id)
-            ;
+            .FirstAsync(a => a.Id == accountProductEntity.Account.Id);
+
+        var products = new List<ProductDto>();
+        foreach (var produto in account.Products)
+        {
+            var addons = new List<AddonDto>();
+            foreach (var addon in produto.Product.Addons)
+            {
+                var addonItem = new AddonDto()
+                {
+                    Id = addon.Id,
+                    Name = addon.Name,
+                    // Pode ser melhor criar uma outra DTO sem esse ID
+                    // E então lembrar de remover essa property desnecessária.
+                    ProductId = addon.ProductId,
+                };
+                addons.Add(addonItem);
+            }
+
+            var productItem = new ProductDto()
+            {
+                Id = produto.Product.Id,
+                Name = produto.Product.Name,
+                Description = produto.Product.Description,
+                Value = produto.Product.Value,
+                Addons = addons
+            };
+            products.Add(productItem);
+        }
+
+        var accountDto = new AccountDto()
+        {
+            Id = account.Id,
+            DisplayName = account.DisplayName,
+            Products = products
+        };
+
+        return accountDto;
+    }
+
+    public async Task<AccountDto> RemoveProductFromAccountAsync(AccountProductIdsDto accountProduct)
+    {
+        // Recuperar e validar a Account
+        var accountEntity = await _context.Accounts.FindAsync(accountProduct.AccountId);
+        if (accountEntity is null)
+        {
+            _logger.LogWarning("Account not found with Id: {Id}", accountProduct.AccountId);
+            throw new InvalidOperationException($"Account with Id {accountProduct.AccountId} not found");
+        }
+
+        // Recuperar e validar o Product
+        var productEntity = await _context.Products.FindAsync(accountProduct.ProductId);
+        if (productEntity is null)
+        {
+            _logger.LogWarning("Product not found with Id: {Id}", accountProduct.ProductId);
+            throw new InvalidOperationException($"Product with Id {accountProduct.ProductId} not found");
+        }
+
+        // Validar que a relação exista
+        var accountProductEntity = await _context.AccountProducts.FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
+        if (accountProductEntity is null)
+        {
+            _logger.LogWarning("No relation found between account {AccountId} and product {ProductId}", accountProduct.AccountId, accountProduct.ProductId);
+            throw new InvalidOperationException($"No relation found between account {accountProduct.AccountId} and product {accountProduct.ProductId}");
+        }
+
+        // Retornar a Account completa em forma de DTO
+        var account = await _context.Accounts
+            .Include(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
+            .FirstAsync(a => a.Id == accountProductEntity.Account.Id);
+
+        _context.AccountProducts.Remove(accountProductEntity);
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Removed product {ProductId} from account {AccountId}", accountProduct.ProductId, accountProduct.AccountId);
 
         var produtos = new List<ProductDto>();
         foreach (var produto in account.Products)
@@ -167,7 +312,4 @@ public class AccountService : IAccountService
 
         return accountDto;
     }
-
-    // TODO - ARTHUR: Criar um método que remova uma relação AccountProduct dado os Ids
-    // DICA: Basta recuperar ela e dar um "_context.RemoveAsync(accountProductEntity);"
 }
