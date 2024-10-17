@@ -149,54 +149,9 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a user with Id: {Id}", entity.Id);
 
-        var returnDto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
-
-        return returnDto;
+        return entity;
+        throw new NotImplementedException();
     }
-
-    public async Task<UserDto> UpdateUserAsync(UpdateUserDto user)
-    {
-        if (user.Username.Length > 30)
-        {
-            _logger.LogWarning("Username length cannot be more than 30");
-            throw new KeyNotFoundException("Username length cannot be more than 30");
-        }
-
-        if (user.Username.Length < 5)
-        {
-            _logger.LogWarning("Username length cannot be less than 5");
-            throw new KeyNotFoundException("Username length cannot be less than 5");
-        }
-
-        var usernameHasSpaceCharacter = Regex.IsMatch(user.Username, @"\s");
-        if (usernameHasSpaceCharacter)
-        {
-            _logger.LogWarning("Username cannot have any space characters");
-            throw new KeyNotFoundException("Username cannot have any space characters");
-        }
-
-        if (user.Password.Length < 8)
-        {
-            _logger.LogWarning("Password length cannot be less than 8");
-            throw new KeyNotFoundException("Password length cannot be less than 8");
-        }
-
-        var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
-        if (!hasUpperCase)
-        {
-            _logger.LogWarning("Password must have at least one upper case character");
-            throw new KeyNotFoundException("Password must have at least one upper case character");
-        }
 
     public async Task<User> UpdateUserAsync(UpdateUserDto user)
     {
@@ -265,20 +220,8 @@ public class UserService : IUserService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
-
-        var returnDto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
-
-        return returnDto;
+        return entity;
+        throw new NotImplementedException();
     }
 
     public async Task<UserDto> DeleteUserAsync(int id)
@@ -313,6 +256,7 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted a user with Id: {Id}", id);
 
-        return returnDto;
+        return entity;
+        throw new NotImplementedException();
     }
 }
