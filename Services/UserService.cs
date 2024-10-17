@@ -198,6 +198,40 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password must have at least one upper case character");
         }
 
+    public async Task<User> UpdateUserAsync(UpdateUserDto user)
+    {
+        if (user.Username.Length > 30)
+        {
+            _logger.LogWarning("Username length cannot be more than 30");
+            throw new KeyNotFoundException("Username length cannot be more than 30");
+        }
+
+        if (user.Username.Length < 5)
+        {
+            _logger.LogWarning("Username length cannot be less than 5");
+            throw new KeyNotFoundException("Username length cannot be less than 5");
+        }
+
+        var usernameHasSpaceCharacter = Regex.IsMatch(user.Username, @"\s");
+        if (usernameHasSpaceCharacter)
+        {
+            _logger.LogWarning("Username cannot have any space characters");
+            throw new KeyNotFoundException("Username cannot have any space characters");
+        }
+
+        if (user.Password.Length < 8)
+        {
+            _logger.LogWarning("Username length cannot be less than 8");
+            throw new KeyNotFoundException("Username length cannot be less than 8");
+        }
+
+        var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
+        if (!hasUpperCase)
+        {
+            _logger.LogWarning("Password must have at least one upper case character");
+            throw new KeyNotFoundException("Password must have at least one upper case character");
+        }
+
         var hasLowerCase = Regex.IsMatch(user.Password, "[a-z]");
         if (!hasLowerCase)
         {
@@ -205,15 +239,12 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password must have at least one lower case character");
         }
 
-        // Inserting special characters currently makes the API exit with code 'Access Violation'
-        // Therefore, the validation below is suspended
-
-        //var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
-        //if (!hasSpecialCharacter)
-        //{
-        //    _logger.LogWarning("Password must have at least one special character");
-        //    throw new KeyNotFoundException("Password must have at least one special character");
-        //}
+        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
+        if (!hasSpecialCharacter)
+        {
+            _logger.LogWarning("Password must have at least one special character");
+            throw new KeyNotFoundException("Password must have at least one special character");
+        }
 
         var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
         if (passwordHasSpaceCharacter)
