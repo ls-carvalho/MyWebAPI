@@ -10,7 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Addon> Addons { get; set; }
     public DbSet<Product> Products { get; set; }
-    //public DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; }
 
     public DbSet<AccountProduct> AccountProducts { get; set; }
 
@@ -23,7 +23,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Product>().HasKey(p => p.Id);
 
-        //modelBuilder.Entity<User>().HasKey(u => u.Id);
+        modelBuilder.Entity<User>().HasKey(u => u.Id);
 
         modelBuilder.Entity<AccountProduct>().HasKey(ap => new { ap.AccountId, ap.ProductId });
         modelBuilder.Entity<AccountProduct>().HasOne(ap => ap.Account).WithMany(a => a.Products).HasForeignKey(ap => ap.AccountId);

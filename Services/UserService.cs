@@ -20,14 +20,12 @@ public class UserService : IUserService
 
     public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        //return await _context.Users.OrderBy(user => user.Id).ToListAsync();
-        throw new NotImplementedException();
+        return await _context.Users.OrderBy(user => user.Id).ToListAsync();
     }
 
     public async Task<User?> GetUserByIdAsync(int id)
     {
-        //return await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(p => p.Id == id);
-        throw new NotImplementedException();
+        return await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<User> CreateUserAsync(CreateUserDto user)
@@ -81,17 +79,17 @@ public class UserService : IUserService
         {
             Username = user.Username,
             Password = user.Password,
-            //Account = new Account()
-            //{
-            //    DisplayName = user.AccountDisplayName,
-            //},
+            Account = new Account()
+            {
+                DisplayName = user.AccountDisplayName,
+            },
         };
 
-        //_context.Users.Add(entity);
+        _context.Users.Add(entity);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a user with Id: {Id}", entity.Id);
 
-        //return entity;
+        return entity;
         throw new NotImplementedException();
     }
 
@@ -150,43 +148,43 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password cannot have any space characters");
         }
 
-        //var entity = await _context.Users.FindAsync(user.Id);
-        //if (entity is null)
-        //{
-        //    _logger.LogWarning("User not found with Id: {Id}", user.Id);
-        //    throw new KeyNotFoundException($"User not found with Id: {user.Id}");
-        //}
+        var entity = await _context.Users.FindAsync(user.Id);
+        if (entity is null)
+        {
+            _logger.LogWarning("User not found with Id: {Id}", user.Id);
+            throw new KeyNotFoundException($"User not found with Id: {user.Id}");
+        }
 
-        //entity.Username = user.Username;
-        //entity.Password = user.Password;
+        entity.Username = user.Username;
+        entity.Password = user.Password;
 
-        //await _context.SaveChangesAsync();
-        //_logger.LogInformation("Updated a user with Id: {Id}", user.Id);
-        //return entity;
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
+        return entity;
         throw new NotImplementedException();
     }
 
     public async Task<User> DeleteUserAsync(int id)
     {
-        //var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
-        //if (entity is null)
-        //{
-        //    _logger.LogWarning("User not found with Id: {Id}", id);
-        //    throw new KeyNotFoundException($"User not found with Id: {id}");
-        //}
+        var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
+        if (entity is null)
+        {
+            _logger.LogWarning("User not found with Id: {Id}", id);
+            throw new KeyNotFoundException($"User not found with Id: {id}");
+        }
 
-        //if (entity.Account is not null)
-        //{
-        //    var account = entity.Account;
-        //    _context.Accounts.Remove(account);
-        //    _logger.LogInformation("Deleted an account with Id: {Id}", account.Id);
-        //}
+        if (entity.Account is not null)
+        {
+            var account = entity.Account;
+            _context.Accounts.Remove(account);
+            _logger.LogInformation("Deleted an account with Id: {Id}", account.Id);
+        }
 
-        //_context.Users.Remove(entity);
-        //await _context.SaveChangesAsync();
-        //_logger.LogInformation("Deleted a user with Id: {Id}", id);
+        _context.Users.Remove(entity);
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Deleted a user with Id: {Id}", id);
 
-        //return entity;
+        return entity;
         throw new NotImplementedException();
     }
 }
