@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Models;
 using MyWebAPI.Services.Interfaces;
 using System.Text.RegularExpressions;
@@ -18,17 +19,59 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        return await _context.Users.OrderBy(user => user.Id).ToListAsync();
+        var entityList = await _context.Users
+            .Include(u => u.Account)
+            .OrderBy(product => product.Id)
+            .ToListAsync();
+
+        var dtoList = new List<UserDto>();
+
+        foreach (var entity in entityList)
+        {
+            var dto = new UserDto()
+            {
+                Id = entity.Id,
+                Username = entity.Username,
+                Password = entity.Password,
+                Account = new AccountDto()
+                {
+                    Id = entity.Account.Id,
+                    DisplayName = entity.Account.DisplayName,
+                },
+            };
+
+            dtoList.Add(dto);
+        }
+
+        return dtoList;
     }
 
-    public async Task<User?> GetUserByIdAsync(int id)
+    public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        return await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(p => p.Id == id);
+        var entity = await _context.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (entity == null) return null;
+
+        var dto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
+
+        return dto;
     }
 
-    public async Task<User> CreateUserAsync(CreateUserDto user)
+    public async Task<UserDto> CreateUserAsync(CreateUserDto user)
     {
         if (user.Username.Length > 30)
         {
@@ -49,10 +92,10 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Username cannot have any space characters");
         }
 
-        if (user.Username.Length < 8)
+        if (user.Password.Length < 8)
         {
-            _logger.LogWarning("Username length cannot be less than 8");
-            throw new KeyNotFoundException("Username length cannot be less than 8");
+            _logger.LogWarning("Password length cannot be less than 8");
+            throw new KeyNotFoundException("Password length cannot be less than 8");
         }
 
         var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
@@ -69,12 +112,15 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password must have at least one lower case character");
         }
 
-        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>_]");
-        if (!hasSpecialCharacter)
-        {
-            _logger.LogWarning("Password must have at least one special character");
-            throw new KeyNotFoundException("Password must have at least one special character");
-        }
+        // Inserting special characters currently makes the API exit with code 'Access Violation'
+        // Therefore, the validation below is suspended
+
+        //var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>_]");
+        //if (!hasSpecialCharacter)
+        //{
+        //    _logger.LogWarning("Password must have at least one special character");
+        //    throw new KeyNotFoundException("Password must have at least one special character");
+        //}
 
         var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
         if (passwordHasSpaceCharacter)
@@ -103,10 +149,22 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a user with Id: {Id}", entity.Id);
 
-        return entity;
+        var returnDto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
+
+        return returnDto;
     }
 
-    public async Task<User> UpdateUserAsync(UpdateUserDto user)
+    public async Task<UserDto> UpdateUserAsync(UpdateUserDto user)
     {
         if (user.Username.Length > 30)
         {
@@ -129,8 +187,8 @@ public class UserService : IUserService
 
         if (user.Password.Length < 8)
         {
-            _logger.LogWarning("Username length cannot be less than 8");
-            throw new KeyNotFoundException("Username length cannot be less than 8");
+            _logger.LogWarning("Password length cannot be less than 8");
+            throw new KeyNotFoundException("Password length cannot be less than 8");
         }
 
         var hasUpperCase = Regex.IsMatch(user.Password, "[A-Z]");
@@ -147,12 +205,15 @@ public class UserService : IUserService
             throw new KeyNotFoundException("Password must have at least one lower case character");
         }
 
-        var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
-        if (!hasSpecialCharacter)
-        {
-            _logger.LogWarning("Password must have at least one special character");
-            throw new KeyNotFoundException("Password must have at least one special character");
-        }
+        // Inserting special characters currently makes the API exit with code 'Access Violation'
+        // Therefore, the validation below is suspended
+
+        //var hasSpecialCharacter = Regex.IsMatch(user.Password, @"[!@#$%^&*(),.?""{}|<>]");
+        //if (!hasSpecialCharacter)
+        //{
+        //    _logger.LogWarning("Password must have at least one special character");
+        //    throw new KeyNotFoundException("Password must have at least one special character");
+        //}
 
         var passwordHasSpaceCharacter = Regex.IsMatch(user.Password, @"\s");
         if (passwordHasSpaceCharacter)
@@ -173,10 +234,23 @@ public class UserService : IUserService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
-        return entity;
+
+        var returnDto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
+
+        return returnDto;
     }
 
-    public async Task<User> DeleteUserAsync(int id)
+    public async Task<UserDto> DeleteUserAsync(int id)
     {
         var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
         if (entity is null)
@@ -184,6 +258,18 @@ public class UserService : IUserService
             _logger.LogWarning("User not found with Id: {Id}", id);
             throw new KeyNotFoundException($"User not found with Id: {id}");
         }
+
+        var returnDto = new UserDto()
+        {
+            Id = entity.Id,
+            Username = entity.Username,
+            Password = entity.Password,
+            Account = new AccountDto()
+            {
+                Id = entity.Account.Id,
+                DisplayName = entity.Account.DisplayName,
+            },
+        };
 
         if (entity.Account is not null)
         {
@@ -196,6 +282,6 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted a user with Id: {Id}", id);
 
-        return entity;
+        return returnDto;
     }
 }

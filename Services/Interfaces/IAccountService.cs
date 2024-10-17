@@ -1,10 +1,10 @@
 ﻿using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 
 namespace MyWebAPI.Services.Interfaces;
 public interface IAccountService
 {
-    Task<IEnumerable<Account>> GetAllAccountsAsync();
-    Task<Account?> GetAccountByIdAsync(int id);
-    Task<Account> UpdateAccountAsync(UpdateAccountDto account);
+    Task<IEnumerable<AccountDto>> GetAllAccountsAsync();
+    Task<AccountDto?> GetAccountByIdAsync(int id);
+    Task<AccountDto> UpdateAccountAsync(UpdateAccountDto account);
 }
