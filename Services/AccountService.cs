@@ -91,33 +91,33 @@ public class AccountService : IAccountService
     {
         // Recuperar a Account
         var accountEntity = await _context.Accounts.FindAsync(accountProduct.AccountId);
-        
+
         // Validar a existencia da Account
         if (accountEntity is null) throw new Exception("Account com ID " + accountProduct.AccountId + " não encontrada!");
-        
+
         // Recuperar o Product
         var productEntity = await _context.Products.FindAsync(accountProduct.ProductId);
-        
+
         // Validar a existencia do Product
         if (productEntity is null) throw new Exception("Product com ID " + accountProduct.ProductId + " não encontrado!");
-        
+
         // Validar a existencia da futura relação
         var accountProductEntity = await _context.AccountProducts.FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
         if (accountProductEntity is not null) throw new Exception("A account " + accountProduct.AccountId + " já possui o product " + accountProduct.ProductId + "!");
-        
+
         // Criar a relação
+        //accountProductEntity = new AccountProduct()
+        //{
+        //    AccountId = accountProduct.AccountId,
+        //    ProductId = accountProduct.ProductId,
+        //};
+
+        // Alternativamente:
         accountProductEntity = new AccountProduct()
         {
-            AccountId = accountProduct.AccountId,
-            ProductId = accountProduct.ProductId,
+            Account = accountEntity,
+            Product = productEntity,
         };
-        
-        // Alternativamente:
-        //  accountProductEntity = new AccountProduct()
-        //  {
-        //        Account = accountEntity,
-        //        Product = productEntity,
-        //  };
 
         await _context.AddAsync(accountProductEntity);
         await _context.SaveChangesAsync();
@@ -127,14 +127,14 @@ public class AccountService : IAccountService
             .Include(a => a.Products)
             .ThenInclude(ap => ap.Product)
             .ThenInclude(p => p.Addons)
-            .FirstAsync(a => a.Id == accountProductEntity.AccountId)
+            .FirstAsync(a => a.Id == accountProductEntity.Account.Id)
             ;
 
         var produtos = new List<ProductDto>();
-        foreach(var produto in account.Products)
+        foreach (var produto in account.Products)
         {
             var addons = new List<AddonDto>();
-            foreach(var addon in produto.Product.Addons)
+            foreach (var addon in produto.Product.Addons)
             {
                 var addonItem = new AddonDto()
                 {
@@ -164,7 +164,7 @@ public class AccountService : IAccountService
             DisplayName = account.DisplayName,
             Products = produtos
         };
-        
+
         return accountDto;
     }
 
