@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
@@ -11,11 +12,13 @@ public class AddonService : IAddonService
 {
     private readonly ILogger<AddonService> _logger;
     public readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public AddonService(ILogger<AddonService> logger, AppDbContext context)
+    public AddonService(ILogger<AddonService> logger, AppDbContext context, IMapper mapper)
     {
         _context = context;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<AddonDto?> GetAddonByIdAsync(int id)
@@ -24,13 +27,7 @@ public class AddonService : IAddonService
 
         if (entity == null) return null;
 
-        var dto = new AddonDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            ProductId = entity.ProductId,
-        };
-
+        var dto = _mapper.Map<AddonDto>(entity);
         return dto;
     }
 
@@ -49,12 +46,8 @@ public class AddonService : IAddonService
             throw new InvalidOperationException($"Product not found with Id: {addon.ProductId}");
         }
 
-        var entity = new Addon()
-        {
-            Name = addon.Name,
-            ProductId = addon.ProductId,
-            Product = product
-        };
+        var entity = _mapper.Map<Addon>(addon);
+        entity.Product = product;
 
         _context.Addons.Add(entity);
         await _context.SaveChangesAsync();
@@ -85,18 +78,20 @@ public class AddonService : IAddonService
             throw new InvalidOperationException($"Addon not found with Id: {addon.Id}");
         }
 
-        entity.Name = addon.Name;
+        /* Não tive sucesso usando essa forma do AutoMapper aqui:
+         * entity = _mapper.Map<Addon>(addon);
+         * Aparentemente ele cria uma nova instância de Addon(),
+         * com os valores default de criação, evidentemente, e
+         * sobrescreve a instância entity que eu tinha instanciado
+         * antes
+         */
+
+        _mapper.Map(addon, entity);
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an addon with Id: {Id}", addon.Id);
 
-        var returnDto = new AddonDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            ProductId = entity.ProductId
-
-        };
+        var returnDto = _mapper.Map<AddonDto>(entity);
         return returnDto;
     }
 
@@ -113,13 +108,7 @@ public class AddonService : IAddonService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted an addon with Id: {Id}", id);
 
-        var dto = new AddonDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            ProductId = entity.ProductId
-        };
-
+        var dto = _mapper.Map<AddonDto>(entity);
         return dto;
     }
 }
