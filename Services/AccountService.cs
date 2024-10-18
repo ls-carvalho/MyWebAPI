@@ -231,22 +231,6 @@ public class AccountService : IAccountService
 
     public async Task<AccountDto> RemoveProductFromAccountAsync(AccountProductIdsDto accountProduct)
     {
-        // Recuperar e validar a Account
-        var accountEntity = await _context.Accounts.FindAsync(accountProduct.AccountId);
-        if (accountEntity is null)
-        {
-            _logger.LogWarning("Account not found with Id: {Id}", accountProduct.AccountId);
-            throw new InvalidOperationException($"Account with Id {accountProduct.AccountId} not found");
-        }
-
-        // Recuperar e validar o Product
-        var productEntity = await _context.Products.FindAsync(accountProduct.ProductId);
-        if (productEntity is null)
-        {
-            _logger.LogWarning("Product not found with Id: {Id}", accountProduct.ProductId);
-            throw new InvalidOperationException($"Product with Id {accountProduct.ProductId} not found");
-        }
-
         // Validar que a relação exista
         var accountProductEntity = await _context.AccountProducts.FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
         if (accountProductEntity is null)
