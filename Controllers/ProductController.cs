@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
-using MyWebAPI.Models;
+using MyWebAPI.DataTransferObject.ReturnDtos;
 using MyWebAPI.Services.Interfaces;
 
 namespace MyWebAPI.Controllers;
@@ -11,20 +9,16 @@ namespace MyWebAPI.Controllers;
 [Route("[controller]")]
 public class ProductController : ControllerBase
 {
-    private readonly ILogger<ProductController> _logger;
-    private readonly AppDbContext _context;
     private readonly IProductService _productService;
 
-    public ProductController(ILogger<ProductController> logger, AppDbContext context, IProductService productService)
+    public ProductController(IProductService productService)
     {
-        _logger = logger;
-        _context = context;
         _productService = productService;
     }
 
     [HttpGet]
     [Route("all")]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProductsAsync()
     {
         var result = await _productService.GetAllProductsAsync();
         return Ok(result);
@@ -32,12 +26,12 @@ public class ProductController : ControllerBase
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<Product>> GetProductById(int id)
+    public async Task<ActionResult<ProductDto>> GetProductByIdAsync(int id)
     {
-        var result = await _productService.GetProductById(id);
+        var result = await _productService.GetProductByIdAsync(id);
         if (result is null)
         {
-            return NotFound();
+            return BadRequest($"Product not found with Id: {id}");
         }
 
         return Ok(result);
@@ -45,57 +39,61 @@ public class ProductController : ControllerBase
 
     [HttpPost]
     [Route("create")]
-    public async Task<ActionResult<Product>> CreateProduct(CreateProductDto product)
+    public async Task<ActionResult<ProductDto>> CreateProductAsync(CreateProductDto product)
     {
         try
         {
-            var result = await _productService.CreateProduct(product);
-            _logger.LogInformation("Created a product with Id: {Id}", result.Id);
+            var result = await _productService.CreateProductAsync(product);
             return Ok(result);
         }
-        catch (KeyNotFoundException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, ex.Message);
-            return NotFound();
+            return BadRequest(ex.Message);
         }
     }
 
     [HttpPost]
     [Route("update")]
-    public async Task<ActionResult<Product>> UpdateProduct(UpdateProductDto product)
+    public async Task<ActionResult<ProductDto>> UpdateProductAsync(UpdateProductDto product)
     {
         try
         {
-            var entity = await _productService.UpdateProduct(product);
-            _logger.LogInformation("Updated a product with Id: {Id}", product.Id);
-            return Ok(product);
+            var entity = await _productService.UpdateProductAsync(product);
+            return Ok(entity);
         }
-        catch (ArgumentNullException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, ex.Message);
-            return BadRequest();
+            return BadRequest(ex.Message);
         }
-        catch (KeyNotFoundException ex)
+    }
+
+    [HttpPost]
+    [Route("add-addons")]
+    public async Task<ActionResult<ProductDto>> AddProductAddonsAsync(AddAddonsToProductDto product)
+    {
+        try
         {
-            _logger.LogWarning(ex, ex.Message);
-            return NotFound();
+            var entity = await _productService.AddAddonsAsync(product);
+            return Ok(entity);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
     [HttpDelete]
     [Route("{id}")]
-    public async Task<ActionResult<Product>> DeleteProduct(int id)
+    public async Task<ActionResult<ProductDto>> DeleteProductAsync(int id)
     {
         try
         {
-            var entity = await _productService.DeleteProduct(id);
-            _logger.LogInformation("Deleted a product with Id: {Id}", entity!.Id);
+            var entity = await _productService.DeleteProductAsync(id);
             return Ok(entity);
         }
-        catch (KeyNotFoundException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, ex.Message);
-            return NotFound();
+            return BadRequest(ex.Message);
         }
     }
 }
