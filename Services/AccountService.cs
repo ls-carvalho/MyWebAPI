@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
@@ -11,60 +13,24 @@ public class AccountService : IAccountService
 {
     private readonly ILogger<AccountService> _logger;
     public readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public AccountService(ILogger<AccountService> logger, AppDbContext context)
+    public AccountService(ILogger<AccountService> logger, AppDbContext context, IMapper mapper)
     {
         _context = context;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<AccountDto>> GetAllAccountsAsync()
     {
-        var entityList = await _context.Accounts
+        var dtoList = await _context.Accounts
             .Include(a => a.Products)
             .ThenInclude(ap => ap.Product)
             .ThenInclude(p => p.Addons)
             .OrderBy(account => account.Id)
+            .ProjectTo<AccountDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
-
-        var dtoList = new List<AccountDto>();
-
-        foreach (var entity in entityList)
-        {
-            var products = new List<ProductDto>();
-            foreach (var produto in entity.Products)
-            {
-                var addons = new List<AddonWithoutProductIdDto>();
-                foreach (var addon in produto.Product.Addons)
-                {
-                    var addonItem = new AddonWithoutProductIdDto()
-                    {
-                        Id = addon.Id,
-                        Name = addon.Name
-                    };
-                    addons.Add(addonItem);
-                }
-
-                var productItem = new ProductDto()
-                {
-                    Id = produto.Product.Id,
-                    Name = produto.Product.Name,
-                    Description = produto.Product.Description,
-                    Value = produto.Product.Value,
-                    Addons = addons
-                };
-                products.Add(productItem);
-            }
-
-            var dto = new AccountDto()
-            {
-                Id = entity.Id,
-                DisplayName = entity.DisplayName,
-                Products = products,
-            };
-
-            dtoList.Add(dto);
-        }
 
         return dtoList;
     }
@@ -72,52 +38,24 @@ public class AccountService : IAccountService
     public async Task<AccountDto?> GetAccountByIdAsync(int id)
     {
         // Retornar a Account completa em forma de DTO
-        var entity = await _context.Accounts
+        var dto = await _context.Accounts
             .Include(a => a.Products)
             .ThenInclude(ap => ap.Product)
             .ThenInclude(p => p.Addons)
+            .ProjectTo<AccountDto>(_mapper.ConfigurationProvider)
             .FirstAsync(a => a.Id == id);
-
-        if (entity == null) return null;
-
-        var products = new List<ProductDto>();
-        foreach (var produto in entity.Products)
-        {
-            var addons = new List<AddonWithoutProductIdDto>();
-            foreach (var addon in produto.Product.Addons)
-            {
-                var addonItem = new AddonWithoutProductIdDto()
-                {
-                    Id = addon.Id,
-                    Name = addon.Name,
-                };
-                addons.Add(addonItem);
-            }
-
-            var productItem = new ProductDto()
-            {
-                Id = produto.Product.Id,
-                Name = produto.Product.Name,
-                Description = produto.Product.Description,
-                Value = produto.Product.Value,
-                Addons = addons
-            };
-            products.Add(productItem);
-        }
-
-        var dto = new AccountDto()
-        {
-            Id = entity.Id,
-            DisplayName = entity.DisplayName,
-            Products = products
-        };
 
         return dto;
     }
 
     public async Task<AccountDto> UpdateAccountAsync(UpdateAccountDto account)
     {
-        var entity = await _context.Accounts.FindAsync(account.Id);
+        var entity = await _context.Accounts
+            .Include(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
+            .FirstOrDefaultAsync(a => a.Id == account.Id);
+
         if (entity is null)
         {
             _logger.LogWarning("Account not found with Id: {Id}", account.Id);
@@ -135,13 +73,8 @@ public class AccountService : IAccountService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated an account with Id: {Id}", account.Id);
 
-        var returnDto = new AccountDto()
-        {
-            Id = entity.Id,
-            DisplayName = entity.DisplayName,
-        };
+        return _mapper.Map<AccountDto>(entity);
 
-        return returnDto;
     }
 
     public async Task<AccountDto> AddProductToAccountAsync(AccountProductIdsDto accountProduct)
@@ -188,43 +121,12 @@ public class AccountService : IAccountService
         await _context.SaveChangesAsync();
 
         // Retornar a Account completa em forma de DTO
-        var account = await _context.Accounts
+        var accountDto = await _context.Accounts
             .Include(a => a.Products)
             .ThenInclude(ap => ap.Product)
             .ThenInclude(p => p.Addons)
+            .ProjectTo<AccountDto>(_mapper.ConfigurationProvider)
             .FirstAsync(a => a.Id == accountProductEntity.Account.Id);
-
-        var products = new List<ProductDto>();
-        foreach (var produto in account.Products)
-        {
-            var addons = new List<AddonWithoutProductIdDto>();
-            foreach (var addon in produto.Product.Addons)
-            {
-                var addonItem = new AddonWithoutProductIdDto()
-                {
-                    Id = addon.Id,
-                    Name = addon.Name,
-                };
-                addons.Add(addonItem);
-            }
-
-            var productItem = new ProductDto()
-            {
-                Id = produto.Product.Id,
-                Name = produto.Product.Name,
-                Description = produto.Product.Description,
-                Value = produto.Product.Value,
-                Addons = addons
-            };
-            products.Add(productItem);
-        }
-
-        var accountDto = new AccountDto()
-        {
-            Id = account.Id,
-            DisplayName = account.DisplayName,
-            Products = products
-        };
 
         return accountDto;
     }
@@ -232,55 +134,27 @@ public class AccountService : IAccountService
     public async Task<AccountDto> RemoveProductFromAccountAsync(AccountProductIdsDto accountProduct)
     {
         // Validar que a relação exista
-        var accountProductEntity = await _context.AccountProducts.FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
+        var accountProductEntity = await _context.AccountProducts
+            .Include(a => a.Account)
+            .Include(a => a.Product)
+            .FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
         if (accountProductEntity is null)
         {
             _logger.LogWarning("No relation found between account {AccountId} and product {ProductId}", accountProduct.AccountId, accountProduct.ProductId);
             throw new InvalidOperationException($"No relation found between account {accountProduct.AccountId} and product {accountProduct.ProductId}");
         }
 
-        // Retornar a Account completa em forma de DTO
-        var account = await _context.Accounts
-            .Include(a => a.Products)
-            .ThenInclude(ap => ap.Product)
-            .ThenInclude(p => p.Addons)
-            .FirstAsync(a => a.Id == accountProductEntity.Account.Id);
-
         _context.AccountProducts.Remove(accountProductEntity);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Removed product {ProductId} from account {AccountId}", accountProduct.ProductId, accountProduct.AccountId);
 
-        var produtos = new List<ProductDto>();
-        foreach (var produto in account.Products)
-        {
-            var addons = new List<AddonWithoutProductIdDto>();
-            foreach (var addon in produto.Product.Addons)
-            {
-                var addonItem = new AddonWithoutProductIdDto()
-                {
-                    Id = addon.Id,
-                    Name = addon.Name,
-                };
-                addons.Add(addonItem);
-            }
-
-            var produtoItem = new ProductDto()
-            {
-                Id = produto.Product.Id,
-                Name = produto.Product.Name,
-                Description = produto.Product.Description,
-                Value = produto.Product.Value,
-                Addons = addons
-            };
-            produtos.Add(produtoItem);
-        }
-
-        var accountDto = new AccountDto()
-        {
-            Id = account.Id,
-            DisplayName = account.DisplayName,
-            Products = produtos
-        };
+        // Retornar a Account completa em forma de DTO
+        var accountDto = await _context.Accounts
+            .Include(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
+            .ProjectTo<AccountDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(a => a.Id == accountProductEntity.Account.Id);
 
         return accountDto;
     }
