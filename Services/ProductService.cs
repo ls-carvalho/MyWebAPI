@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
@@ -11,65 +13,30 @@ public class ProductService : IProductService
 {
     private readonly ILogger<ProductService> _logger;
     public readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public ProductService(ILogger<ProductService> logger, AppDbContext context)
+    public ProductService(ILogger<ProductService> logger, AppDbContext context, IMapper mapper)
     {
         _context = context;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
     {
-        var entityList = await _context.Products
+        return await _context.Products
             .Include(p => p.Addons)
             .OrderBy(product => product.Id)
+            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
-
-        var dtoList = new List<ProductDto>();
-
-        foreach (var entity in entityList)
-        {
-            var dto = new ProductDto()
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Description = entity.Description,
-                Value = entity.Value,
-                Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
-                {
-                    Id = addon.Id,
-                    Name = addon.Name,
-                }).ToList()
-            };
-
-            dtoList.Add(dto);
-        }
-
-        return dtoList;
     }
 
     public async Task<ProductDto?> GetProductByIdAsync(int id)
     {
-        var entity = await _context.Products
+        return await _context.Products
             .Include(p => p.Addons)
+            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (entity == null) return null;
-
-        var dto = new ProductDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
-            {
-                Id = addon.Id,
-                Name = addon.Name,
-            }).ToList()
-        };
-
-        return dto;
     }
 
     public async Task<ProductDto> CreateProductAsync(CreateProductDto product)
@@ -86,30 +53,13 @@ public class ProductService : IProductService
             throw new InvalidOperationException("Product description cannot be empty");
         }
 
-        var entity = new Product()
-        {
-            Name = product.Name,
-            Description = product.Description,
-            Value = product.Value,
-        };
+        var entity = _mapper.Map<Product>(product);
 
         _context.Products.Add(entity);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a addonsToProductDto with Id: {Id}", entity.Id);
 
-        var returnDto = new ProductDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
-            {
-                Id = addon.Id,
-                Name = addon.Name,
-            }).ToList()
-        };
-        return returnDto;
+        return _mapper.Map<ProductDto>(entity);
     }
 
     public async Task<ProductDto> UpdateProductAsync(UpdateProductDto product)
@@ -143,20 +93,7 @@ public class ProductService : IProductService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a addonsToProductDto with Id: {Id}", product.Id);
 
-        var returnDto = new ProductDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
-            {
-                Id = addon.Id,
-                Name = addon.Name,
-            }).ToList()
-        };
-
-        return returnDto;
+        return _mapper.Map<ProductDto>(entity);
     }
 
     public async Task<ProductDto> AddAddonsAsync(AddAddonsToProductDto addonsToProductDto)
@@ -188,20 +125,7 @@ public class ProductService : IProductService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Added Addons to a addonsToProductDto with Id: {Id}", addonsToProductDto.Id);
 
-        var returnDto = new ProductDto()
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Value = product.Value,
-            Addons = product.Addons.Select(addon => new AddonWithoutProductIdDto()
-            {
-                Id = addon.Id,
-                Name = addon.Name,
-            }).ToList()
-        };
-
-        return returnDto;
+        return _mapper.Map<ProductDto>(product);
     }
 
     public async Task<ProductDto> DeleteProductAsync(int id)
@@ -220,19 +144,7 @@ public class ProductService : IProductService
         await _context.SaveChangesAsync();
         _logger.LogInformation("Deleted a addonsToProductDto with Id: {Id}", id);
 
-        var returnDto = new ProductDto()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Value = entity.Value,
-            Addons = entity.Addons.Select(addon => new AddonWithoutProductIdDto()
-            {
-                Id = addon.Id,
-                Name = addon.Name,
-            }).ToList()
-        };
-        return returnDto;
+        return _mapper.Map<ProductDto>(entity);
     }
 
     private Addon AddonDtoToEntityAsync(CreateAddonWithoutProductIdDto addon, Product product)
