@@ -138,6 +138,7 @@ public class AccountService : IAccountService
             .Include(a => a.Account)
             .Include(a => a.Product)
             .FirstOrDefaultAsync(ap => ap.ProductId == accountProduct.ProductId && ap.AccountId == accountProduct.AccountId);
+
         if (accountProductEntity is null)
         {
             _logger.LogWarning("No relation found between account {AccountId} and product {ProductId}", accountProduct.AccountId, accountProduct.ProductId);

@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using MyWebAPI.Context;
 using MyWebAPI.DataTransferObject;
 using MyWebAPI.DataTransferObject.ReturnDtos;
@@ -12,63 +14,31 @@ public class UserService : IUserService
 {
     private readonly ILogger<UserService> _logger;
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public UserService(ILogger<UserService> logger, AppDbContext context)
+    public UserService(ILogger<UserService> logger, AppDbContext context, IMapper mapper)
     {
         _context = context;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        var entityList = await _context.Users
+        return await _context.Users
             .Include(u => u.Account)
-            .OrderBy(product => product.Id)
+            .OrderBy(user => user.Id)
+            .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
-
-        var dtoList = new List<UserDto>();
-
-        foreach (var entity in entityList)
-        {
-            var dto = new UserDto()
-            {
-                Id = entity.Id,
-                Username = entity.Username,
-                Password = entity.Password,
-                Account = new AccountDto()
-                {
-                    Id = entity.Account.Id,
-                    DisplayName = entity.Account.DisplayName,
-                },
-            };
-
-            dtoList.Add(dto);
-        }
-
-        return dtoList;
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)
     {
-        var entity = await _context.Users
+        return await _context.Users
             .Include(u => u.Account)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (entity == null) return null;
-
-        var dto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
-
-        return dto;
+            .OrderBy(user => user.Id)
+            .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+            .FirstAsync(u => u.Id == id);
     }
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto user)
@@ -132,33 +102,13 @@ public class UserService : IUserService
             throw new KeyNotFoundException("AccountDisplayName length cannot be more than 20");
         }
 
-        var entity = new User()
-        {
-            Username = user.Username,
-            Password = user.Password,
-            Account = new Account()
-            {
-                DisplayName = user.AccountDisplayName,
-            },
-        };
+        var entity = _mapper.Map<User>(user);
 
         _context.Users.Add(entity);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Created a user with Id: {Id}", entity.Id);
 
-        var returnDto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
-
-        return returnDto;
+        return _mapper.Map<UserDto>(entity);
     }
 
     public async Task<UserDto> UpdateUserAsync(UpdateUserDto user)
@@ -218,6 +168,9 @@ public class UserService : IUserService
 
         var entity = await _context.Users
             .Include(u => u.Account)
+            .ThenInclude(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
             .FirstOrDefaultAsync(p => p.Id == user.Id);
 
         if (entity is null)
@@ -226,47 +179,30 @@ public class UserService : IUserService
             throw new KeyNotFoundException($"User not found with Id: {user.Id}");
         }
 
-        entity.Username = user.Username;
-        entity.Password = user.Password;
+        _mapper.Map(user, entity);
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated a user with Id: {Id}", user.Id);
 
-        var returnDto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
-
-        return returnDto;
+        return _mapper.Map<UserDto>(entity);
     }
 
     public async Task<UserDto> DeleteUserAsync(int id)
     {
-        var entity = await _context.Users.Include(u => u.Account).FirstOrDefaultAsync(u => u.Id == id);
+        var entity = await _context.Users
+            .Include(u => u.Account)
+            .ThenInclude(a => a.Products)
+            .ThenInclude(ap => ap.Product)
+            .ThenInclude(p => p.Addons)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
         if (entity is null)
         {
             _logger.LogWarning("User not found with Id: {Id}", id);
             throw new KeyNotFoundException($"User not found with Id: {id}");
         }
 
-        var returnDto = new UserDto()
-        {
-            Id = entity.Id,
-            Username = entity.Username,
-            Password = entity.Password,
-            Account = new AccountDto()
-            {
-                Id = entity.Account.Id,
-                DisplayName = entity.Account.DisplayName,
-            },
-        };
+        var returnDto = _mapper.Map<UserDto>(entity);
 
         if (entity.Account is not null)
         {

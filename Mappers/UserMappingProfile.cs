@@ -9,11 +9,17 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        CreateMap<Addon, AddonDto>();
-        CreateMap<CreateAddonDto, Addon>()
-            .ForMember(dest => dest.Product, opt => opt.Ignore());
-        CreateMap<UpdateAddonDto, Addon>()
-            .ForMember(dest => dest.Product, opt => opt.Ignore())
-            .ForMember(dest => dest.ProductId, opt => opt.Ignore());
+        CreateMap<User, UserDto>();
+        CreateMap<CreateUserDto, User>()
+            .ForMember(
+                dest => dest.Account,
+                opt => opt.MapFrom(
+                        origin => new Account
+                        {
+                            DisplayName = origin.AccountDisplayName
+                        }
+                    )
+            );
+        CreateMap<UpdateUserDto, User>();
     }
 }
