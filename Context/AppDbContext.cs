@@ -24,7 +24,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Product>().HasKey(p => p.Id);
 
         modelBuilder.Entity<User>().HasKey(u => u.Id);
-        modelBuilder.Entity<User>().HasOne(u => u.Account).WithOne(a => a.User).HasForeignKey<User>(u => u.Id);
 
         modelBuilder.Entity<AccountProduct>().HasKey(ap => new { ap.AccountId, ap.ProductId });
         modelBuilder.Entity<AccountProduct>().HasOne(ap => ap.Account).WithMany(a => a.Products).HasForeignKey(ap => ap.AccountId);
